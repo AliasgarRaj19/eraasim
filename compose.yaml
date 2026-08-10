@@ -11,6 +11,72 @@ services:
     networks:
       - eraasim
 
+  eraasim-admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+      target: runner
+    image: eraasim-admin:local
+    container_name: eraasim-admin
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
+      AUTH_TRUST_HOST: "true"
+    depends_on:
+      eraasim-postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5201:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - eraasim
+
+  eraasim-admin-tools:
+    profiles: ["tools"]
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+      target: tools
+    image: eraasim-admin-tools:local
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      MASTER_ADMIN_EMAIL: ${MASTER_ADMIN_EMAIL:-unveiledjourney.asim@gmail.com}
+      MASTER_ADMIN_NAME: ${MASTER_ADMIN_NAME:-Master Admin}
+    depends_on:
+      eraasim-postgres:
+        condition: service_healthy
+    networks:
+      - eraasim
+
+  eraasim-postgres:
+    image: postgres:18-alpine
+    container_name: eraasim-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - eraasim-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - eraasim
+
 networks:
   eraasim:
     name: eraasim-network
+
+volumes:
+  eraasim-postgres-data:
+    name: eraasim-postgres-data

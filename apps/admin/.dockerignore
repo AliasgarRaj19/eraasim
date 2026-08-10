@@ -1,8 +1,6 @@
 .git
-.gitignore
 .next
 node_modules
-npm-debug.log*
 *.log
 .env
 .env.*
@@ -12,8 +10,4 @@ Thumbs.db
 .idea
 .vscode
 coverage
-apps/admin
-Dockerfile*
-compose*.yaml
-compose*.yml
 README.md
