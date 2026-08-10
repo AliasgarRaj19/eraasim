@@ -1,0 +1,16 @@
+services:
+  eraasim-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eraasim-web:local
+    container_name: eraasim-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5200:3000"
+    networks:
+      - eraasim
+
+networks:
+  eraasim:
+    name: eraasim-network
