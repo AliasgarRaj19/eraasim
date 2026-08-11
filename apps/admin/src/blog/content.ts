@@ -69,8 +69,11 @@ function normalizeNode(value: unknown): JsonObject {
     if (!attrs || typeof attrs.src !== "string" || !uploadPathPattern.test(attrs.src)) {
       throw new Error("Content images must be uploaded through Eraasim.");
     }
-    if (attrs.width !== undefined && !isValidImageWidth(attrs.width)) throw new Error("Content contains an unsupported image width.");
-    if (attrs.displaySize !== undefined && (typeof attrs.displaySize !== "string" || !(attrs.displaySize in LEGACY_IMAGE_WIDTHS))) {
+    const hasCanonicalWidth = attrs.width !== undefined && attrs.width !== null;
+    if (hasCanonicalWidth && !isValidImageWidth(attrs.width)) throw new Error("Content contains an unsupported image width.");
+    const legacyDisplaySize = attrs.displaySize;
+    const hasMeaningfulLegacySize = legacyDisplaySize !== undefined && legacyDisplaySize !== null && legacyDisplaySize !== "";
+    if (!hasCanonicalWidth && hasMeaningfulLegacySize && (typeof legacyDisplaySize !== "string" || !(legacyDisplaySize in LEGACY_IMAGE_WIDTHS))) {
       throw new Error("Content contains an unsupported legacy image display size.");
     }
     return {
@@ -79,7 +82,7 @@ function normalizeNode(value: unknown): JsonObject {
         src: attrs.src,
         alt: typeof attrs.alt === "string" ? attrs.alt.slice(0, 300) : null,
         title: typeof attrs.title === "string" ? attrs.title.slice(0, 300) : null,
-        width: imageWidthFromAttributes(attrs.width, attrs.displaySize),
+        width: imageWidthFromAttributes(attrs.width, hasMeaningfulLegacySize ? legacyDisplaySize : undefined),
       },
     };
   }

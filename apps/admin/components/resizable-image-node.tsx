@@ -22,7 +22,7 @@ export function ResizableImageNode({ node, updateAttributes, selected }: NodeVie
 
     const move = (moveEvent: PointerEvent) => {
       const deltaPercent = ((moveEvent.clientX - startX) / containerWidth) * 100 * direction;
-      updateAttributes({ width: clampImageWidth(startWidth + deltaPercent), displaySize: null });
+      updateAttributes({ width: clampImageWidth(startWidth + deltaPercent) });
     };
     const finish = () => {
       window.removeEventListener("pointermove", move);

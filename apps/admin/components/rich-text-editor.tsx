@@ -1,39 +1,19 @@
 "use client";
 
 import { Color } from "@tiptap/extension-color";
-import Image from "@tiptap/extension-image";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Youtube from "@tiptap/extension-youtube";
-import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useRef, useState } from "react";
 import { uploadImage } from "@/components/image-upload";
-import { ResizableImageNode } from "@/components/resizable-image-node";
-import { isValidImageWidth, TEXT_COLORS } from "@/src/blog/editor-controls";
+import { ResizableImage } from "@/components/resizable-image-extension";
+import { TEXT_COLORS } from "@/src/blog/editor-controls";
 import { captureEditorSelection, restoreEditorSelection, type EditorSelectionSnapshot } from "@/src/blog/editor-selection";
+import { newImageAttributes } from "@/src/blog/image-attributes";
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
 
 const emptyContent = { type: "doc", content: [{ type: "paragraph" }] };
-const ResizableImage = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      width: {
-        default: null,
-        parseHTML: (element) => {
-          const width = Number(element.getAttribute("data-image-width"));
-          return isValidImageWidth(width) ? width : null;
-        },
-        renderHTML: (attributes) => isValidImageWidth(attributes.width) ? { "data-image-width": attributes.width } : {},
-      },
-      displaySize: { default: null },
-    };
-  },
-  addNodeView() {
-    return ReactNodeViewRenderer(ResizableImageNode);
-  },
-});
-
 export function RichTextEditor({ name, error, initialContent = emptyContent }: { name: string; error?: string; initialContent?: Record<string, unknown> }) {
   const [value, setValue] = useState(JSON.stringify(initialContent));
   const [message, setMessage] = useState<string>();
@@ -114,7 +94,7 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
     setMessage(undefined);
     try {
       const src = await uploadImage(file);
-      editor.chain().focus().setImage({ src, alt: "" }).updateAttributes("image", { width: 100, displaySize: null }).run();
+      editor.chain().focus().insertContent({ type: "image", attrs: newImageAttributes(src) }).run();
     } catch (uploadError) {
       setMessage(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
     } finally {
