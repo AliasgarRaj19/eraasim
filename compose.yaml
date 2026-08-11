@@ -48,6 +48,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
       MASTER_ADMIN_EMAIL: ${MASTER_ADMIN_EMAIL:-unveiledjourney.asim@gmail.com}
       MASTER_ADMIN_NAME: ${MASTER_ADMIN_NAME:-Master Admin}
+      MASTER_ADMIN_BOOTSTRAP_PASSWORD: ${MASTER_ADMIN_BOOTSTRAP_PASSWORD:?Set MASTER_ADMIN_BOOTSTRAP_PASSWORD}
     depends_on:
       eraasim-postgres:
         condition: service_healthy
