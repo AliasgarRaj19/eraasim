@@ -104,7 +104,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
               <FieldError messages={fieldError("title")} />
             </label>
             <label>Link / Slug
-              <div className="slug-input"><span>/blog/</span><input name="slug" value={slug} onChange={(event) => { setSlugEdited(true); setSlug(slugify(event.target.value)); }} maxLength={180} required disabled={pending} /></div>
+              <div className="slug-input"><span>/blog/</span><input name="slug" value={slug} onChange={(event) => { setSlugEdited(true); setSlug(event.target.value.toLowerCase()); }} onBlur={() => setSlug(slugify(slug))} maxLength={180} required disabled={pending} /></div>
               <small>{mode === "edit" ? "The existing slug is retained unless you change it." : "Generated from the title until you edit it manually."}</small>
               <FieldError messages={fieldError("slug")} />
             </label>

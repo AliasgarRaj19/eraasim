@@ -1,4 +1,5 @@
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
+import { ALLOWED_TEXT_COLORS, isImageDisplaySize } from "@/src/blog/editor-controls";
 
 type JsonObject = Record<string, unknown>;
 
@@ -24,6 +25,13 @@ function normalizeMarks(value: unknown) {
     const candidate = mark as JsonObject;
     if (typeof candidate.type !== "string") throw new Error("Content contains an invalid text mark.");
     if (textMarks.has(candidate.type)) return { type: candidate.type };
+    if (candidate.type === "textStyle") {
+      const color = (candidate.attrs as JsonObject | undefined)?.color;
+      if (typeof color !== "string" || !ALLOWED_TEXT_COLORS.has(color.toLowerCase())) {
+        throw new Error("Content contains an unsupported text color.");
+      }
+      return { type: "textStyle", attrs: { color: color.toLowerCase() } };
+    }
     if (candidate.type === "link") {
       const href = safeLink((candidate.attrs as JsonObject | undefined)?.href);
       if (!href) throw new Error("Content contains an unsafe link.");
@@ -61,12 +69,16 @@ function normalizeNode(value: unknown): JsonObject {
     if (!attrs || typeof attrs.src !== "string" || !uploadPathPattern.test(attrs.src)) {
       throw new Error("Content images must be uploaded through Eraasim.");
     }
+    if (attrs.displaySize !== undefined && !isImageDisplaySize(attrs.displaySize)) {
+      throw new Error("Content contains an unsupported image display size.");
+    }
     return {
       type: "image",
       attrs: {
         src: attrs.src,
         alt: typeof attrs.alt === "string" ? attrs.alt.slice(0, 300) : null,
         title: typeof attrs.title === "string" ? attrs.title.slice(0, 300) : null,
+        displaySize: isImageDisplaySize(attrs.displaySize) ? attrs.displaySize : "full",
       },
     };
   }

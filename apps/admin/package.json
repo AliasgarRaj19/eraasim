@@ -12,11 +12,14 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
     "check:edit-post": "tsx scripts/check-edit-post.ts",
+    "check:editor-controls": "tsx scripts/check-editor-controls.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
   },
   "dependencies": {
+    "@tiptap/extension-color": "^3.30.0",
     "@tiptap/extension-image": "^3.30.0",
+    "@tiptap/extension-text-style": "^3.30.0",
     "@tiptap/extension-youtube": "^3.30.0",
     "@tiptap/pm": "^3.30.0",
     "@tiptap/react": "^3.30.0",

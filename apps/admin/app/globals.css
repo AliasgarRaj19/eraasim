@@ -116,16 +116,23 @@ a { color: inherit; }
 .field-error, .form-error { margin: 0; color: var(--danger); font-size: .82rem; font-weight: 600; }
 .field-note { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
 .form-error { grid-column: 1 / -1; padding: .85rem 1rem; border: 1px solid #e7bebe; border-radius: .5rem; background: #fff6f6; }
+.post-form > .success-message { grid-column: 1 / -1; }
 .success-message { margin: 0 0 1rem !important; padding: .75rem 1rem; border: 1px solid #bed8c5; border-radius: .5rem; background: #f1faf3; color: #245233 !important; font-weight: 700; }
 .editor-field { min-width: 0; border: 1px solid var(--line); border-radius: .6rem; overflow: hidden; }
 .editor-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; padding: .65rem; border-bottom: 1px solid var(--line); background: #f6f8f5; }
 .editor-toolbar button { min-height: 2rem; padding: .35rem .55rem; border: 1px solid #ccd3cd; background: white; color: #263b2e; font-size: .75rem; }
 .editor-toolbar button:hover, .editor-toolbar button[aria-pressed="true"] { border-color: #71917a; background: #e1ece4; }
 .editor-toolbar button:disabled { cursor: not-allowed; opacity: .45; }
+.editor-toolbar .color-button { display: inline-flex; align-items: center; gap: .35rem; text-transform: capitalize; }
+.color-swatch { width: .72rem; height: .72rem; border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; }
 .editor-surface { min-height: 20rem; padding: 1rem; outline: none; line-height: 1.7; }
 .editor-surface:focus { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
 .editor-surface p:first-child { margin-top: 0; }
 .editor-surface img { display: block; max-width: 100%; height: auto; margin: 1rem auto; border-radius: .4rem; }
+.editor-surface img[data-display-size="small"] { width: min(100%, 25%); }
+.editor-surface img[data-display-size="medium"] { width: min(100%, 50%); }
+.editor-surface img[data-display-size="large"] { width: min(100%, 75%); }
+.editor-surface img[data-display-size="full"] { width: 100%; }
 .editor-surface div[data-youtube-video] { margin: 1rem 0; }
 .editor-surface iframe { max-width: 100%; border: 0; }
 .editor-field > .field-error { padding: 0 1rem .8rem; }

@@ -27,7 +27,7 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
   if (!parsed.success) return { error: "Review the highlighted fields and try again.", fieldErrors: parsed.error.flatten().fieldErrors };
 
   const slug = slugify(parsed.data.slug);
-  if (!isValidSlug(slug) || slug !== parsed.data.slug.toLowerCase()) {
+  if (!isValidSlug(slug)) {
     return { fieldErrors: { slug: ["Use lowercase letters, numbers, and single hyphens only."] } };
   }
 
