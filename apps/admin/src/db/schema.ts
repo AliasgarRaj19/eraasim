@@ -3,6 +3,7 @@ import { boolean, index, inet, jsonb, pgEnum, pgTable, primaryKey, text, timesta
 
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
+export const postStatus = pgEnum("post_status", ["draft", "published", "scheduled", "unpublished"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -74,6 +75,56 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("activity_logs_staff_created_idx").on(table.staffAccountId, table.createdAt)]);
 
-export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({ roles: many(staffRoles), invitations: many(staffInvitations), activityLogs: many(activityLogs) }));
+export const categories = pgTable("categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("categories_name_normalized_uidx").on(sql`lower(${table.name})`),
+  uniqueIndex("categories_slug_uidx").on(table.slug),
+]);
+
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  shortDescription: text("short_description").notNull(),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  featuredImagePath: text("featured_image_path"),
+  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+  status: postStatus("status").notNull().default("draft"),
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  unpublishedAt: timestamp("unpublished_at", { withTimezone: true }),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
+  updatedById: uuid("updated_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (table) => [
+  uniqueIndex("posts_slug_uidx").on(table.slug),
+  index("posts_status_published_idx").on(table.status, table.publishedAt),
+  index("posts_scheduled_for_idx").on(table.scheduledFor),
+  index("posts_category_idx").on(table.categoryId),
+  index("posts_deleted_at_idx").on(table.deletedAt),
+]);
+
+export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({
+  roles: many(staffRoles),
+  invitations: many(staffInvitations),
+  activityLogs: many(activityLogs),
+  createdPosts: many(posts, { relationName: "postCreator" }),
+  updatedPosts: many(posts, { relationName: "postUpdater" }),
+}));
 export const rolesRelations = relations(roles, ({ many }) => ({ staff: many(staffRoles), permissions: many(rolePermissions) }));
 export const permissionsRelations = relations(permissions, ({ many }) => ({ roles: many(rolePermissions) }));
+export const categoriesRelations = relations(categories, ({ many }) => ({ posts: many(posts) }));
+export const postsRelations = relations(posts, ({ one }) => ({
+  category: one(categories, { fields: [posts.categoryId], references: [categories.id] }),
+  createdBy: one(staffAccounts, { fields: [posts.createdById], references: [staffAccounts.id], relationName: "postCreator" }),
+  updatedBy: one(staffAccounts, { fields: [posts.updatedById], references: [staffAccounts.id], relationName: "postUpdater" }),
+}));

@@ -72,6 +72,14 @@ The Drizzle SQL migrations in `apps/admin/drizzle/` are the production schema so
 
 Blog deletion is not implemented yet. When that module is built, ordinary deletion must be a soft delete: deleted posts must disappear from the public website, Draft Posts, and All Posts, and appear in Deleted Posts. Deleted Posts must support restoration, while permanent deletion must be restricted to the Master Admin.
 
+### Blog publishing and media foundation
+
+Post content is stored as validated TipTap JSON, not arbitrary HTML. Formatting is restricted to the editor's supported nodes and marks; links, Eraasim-uploaded image references, and canonical YouTube URLs are validated again on the server before storage. YouTube media remains hosted by YouTube.
+
+Admin image uploads are written beneath `/app/storage/uploads` in the `eraasim-uploads` Docker volume and referenced from posts by generated UUID filenames. The volume is mounted only into `eraasim-admin` for this milestone, survives container replacement, and can later be shared with a dedicated public media service or migrated behind an object-storage adapter. Uploaded binaries are not stored in PostgreSQL. JPEG, PNG, WebP, and GIF are accepted up to 5 MB; original filenames are never used.
+
+Scheduling inputs are interpreted as `Asia/Kolkata` and stored as timezone-aware UTC timestamps. Milestone 1.4A stores the scheduling state only; automatic scheduled publication requires a future worker or cron process and is not simulated by the web application.
+
 After PostgreSQL is healthy and before starting or updating the admin application:
 
 ```sh

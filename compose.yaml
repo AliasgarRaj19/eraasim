@@ -23,11 +23,14 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
+      UPLOAD_ROOT: /app/storage/uploads
     depends_on:
       eraasim-postgres:
         condition: service_healthy
     ports:
       - "127.0.0.1:5201:3000"
+    volumes:
+      - eraasim-uploads:/app/storage/uploads
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
@@ -81,3 +84,5 @@ networks:
 volumes:
   eraasim-postgres-data:
     name: eraasim-postgres-data
+  eraasim-uploads:
+    name: eraasim-uploads

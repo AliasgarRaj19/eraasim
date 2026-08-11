@@ -9,12 +9,12 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   {
     label: "Blog",
-    permission: "blog.view",
+    permission: "blog.posts.view",
     children: [
-      { label: "New Post", href: "/blog/new", permission: "blog.create" },
-      { label: "Draft Posts", href: "/blog/drafts", permission: "blog.view" },
-      { label: "All Posts", href: "/blog", permission: "blog.view" },
-      { label: "Deleted Posts", href: "/blog/deleted", permission: "blog.view" },
+      { label: "New Post", href: "/blog/new", permission: "blog.posts.create" },
+      { label: "Draft Posts", href: "/blog/drafts", permission: "blog.posts.view" },
+      { label: "All Posts", href: "/blog", permission: "blog.posts.view" },
+      { label: "Deleted Posts", href: "/blog/deleted", permission: "blog.posts.view" },
     ],
   },
   {

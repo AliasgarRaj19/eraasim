@@ -8,6 +8,13 @@
       "when": 1786401936464,
       "tag": "0000_conscious_bloodscream",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786471556594,
+      "tag": "0001_mysterious_nova",
+      "breakpoints": true
     }
   ]
 }
