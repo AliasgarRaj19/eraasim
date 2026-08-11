@@ -113,6 +113,7 @@ a { color: inherit; }
 .slug-input input { border-radius: 0 .5rem .5rem 0; }
 .upload-control input { padding: .65rem; border: 1px dashed var(--line); background: #fafbf9; }
 .featured-preview { width: 100%; height: auto; max-height: 25rem; border-radius: .65rem; object-fit: cover; }
+.remove-image-button { justify-self: start; min-height: 2.25rem; border: 1px solid #dfbdb7; background: #fff7f5; color: #8b3428; font-size: .8rem; }
 .field-error, .form-error { margin: 0; color: var(--danger); font-size: .82rem; font-weight: 600; }
 .field-note { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
 .form-error { grid-column: 1 / -1; padding: .85rem 1rem; border: 1px solid #e7bebe; border-radius: .5rem; background: #fff6f6; }
@@ -128,11 +129,17 @@ a { color: inherit; }
 .editor-surface { min-height: 20rem; padding: 1rem; outline: none; line-height: 1.7; }
 .editor-surface:focus { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
 .editor-surface p:first-child { margin-top: 0; }
-.editor-surface img { display: block; max-width: 100%; height: auto; margin: 1rem auto; border-radius: .4rem; }
-.editor-surface img[data-display-size="small"] { width: min(100%, 25%); }
-.editor-surface img[data-display-size="medium"] { width: min(100%, 50%); }
-.editor-surface img[data-display-size="large"] { width: min(100%, 75%); }
-.editor-surface img[data-display-size="full"] { width: 100%; }
+.editor-surface img { display: block; max-width: 100%; height: auto; border-radius: .4rem; }
+.resizable-image { position: relative; display: block; max-width: 100%; margin: 1rem auto; }
+.resizable-image img { width: 100%; user-select: none; }
+.resizable-image.is-selected { outline: 2px solid #4f8060; outline-offset: 3px; }
+.resize-handle { position: absolute; z-index: 2; width: .8rem; height: .8rem; min-height: 0; padding: 0; border: 2px solid white; border-radius: 50%; background: #365b43; box-shadow: 0 0 0 1px #365b43; }
+.handle-nw { top: -.45rem; left: -.45rem; cursor: nwse-resize; }
+.handle-ne { top: -.45rem; right: -.45rem; cursor: nesw-resize; }
+.handle-se { right: -.45rem; bottom: -.45rem; cursor: nwse-resize; }
+.handle-sw { bottom: -.45rem; left: -.45rem; cursor: nesw-resize; }
+.handle-e { top: 50%; right: -.45rem; cursor: ew-resize; transform: translateY(-50%); }
+.handle-w { top: 50%; left: -.45rem; cursor: ew-resize; transform: translateY(-50%); }
 .editor-surface div[data-youtube-video] { margin: 1rem 0; }
 .editor-surface iframe { max-width: 100%; border: 0; }
 .editor-field > .field-error { padding: 0 1rem .8rem; }

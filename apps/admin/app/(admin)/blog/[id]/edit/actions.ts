@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { CreatePostState } from "@/app/(admin)/blog/new/actions";
 import { requirePermission } from "@/src/auth/authorization";
 import { contentHasBody, parseAndNormalizeContent } from "@/src/blog/content";
+import { resolveFeaturedImagePath } from "@/src/blog/featured-image";
 import { parsePostFormData } from "@/src/blog/post-input";
 import { competingSlugPredicate, editablePostPredicate } from "@/src/blog/post-edit";
 import { resolvePublishingState } from "@/src/blog/publishing";
@@ -39,7 +40,7 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
   }
   if (!contentHasBody(content)) return { fieldErrors: { content: ["Add article content before saving."] } };
 
-  const featuredImagePath = optionalText(parsed.data.featuredImagePath);
+  const featuredImagePath = resolveFeaturedImagePath(parsed.data.featuredImagePath, parsed.data.featuredImageIntent);
   if (featuredImagePath && !/^\/api\/uploads\/[0-9a-f-]{36}\.(?:jpe?g|png|webp|gif)$/i.test(featuredImagePath)) {
     return { fieldErrors: { featuredImagePath: ["Upload the featured image through Eraasim."] } };
   }

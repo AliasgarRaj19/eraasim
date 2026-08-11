@@ -9,9 +9,26 @@ export const TEXT_COLORS = {
 } as const;
 
 export const ALLOWED_TEXT_COLORS = new Set<string>(Object.values(TEXT_COLORS));
-export const IMAGE_DISPLAY_SIZES = ["small", "medium", "large", "full"] as const;
-export type ImageDisplaySize = typeof IMAGE_DISPLAY_SIZES[number];
+export const MIN_IMAGE_WIDTH = 10;
+export const MAX_IMAGE_WIDTH = 100;
 
-export function isImageDisplaySize(value: unknown): value is ImageDisplaySize {
-  return typeof value === "string" && IMAGE_DISPLAY_SIZES.includes(value as ImageDisplaySize);
+export const LEGACY_IMAGE_WIDTHS = {
+  small: 25,
+  medium: 50,
+  large: 75,
+  full: 100,
+} as const;
+
+export function isValidImageWidth(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= MIN_IMAGE_WIDTH && value <= MAX_IMAGE_WIDTH;
+}
+
+export function imageWidthFromAttributes(width: unknown, displaySize: unknown) {
+  if (isValidImageWidth(width)) return width;
+  if (typeof displaySize === "string" && displaySize in LEGACY_IMAGE_WIDTHS) return LEGACY_IMAGE_WIDTHS[displaySize as keyof typeof LEGACY_IMAGE_WIDTHS];
+  return MAX_IMAGE_WIDTH;
+}
+
+export function clampImageWidth(value: number) {
+  return Math.min(MAX_IMAGE_WIDTH, Math.max(MIN_IMAGE_WIDTH, Math.round(value)));
 }

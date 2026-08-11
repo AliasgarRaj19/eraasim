@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { requireRouteAccess } from "@/src/auth/authorization";
 import { contentHasBody, parseAndNormalizeContent } from "@/src/blog/content";
+import { resolveFeaturedImagePath } from "@/src/blog/featured-image";
 import { parsePostFormData } from "@/src/blog/post-input";
 import { resolvePublishingState } from "@/src/blog/publishing";
 import { isValidSlug, slugify } from "@/src/blog/slug";
@@ -37,7 +38,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
   }
   if (!contentHasBody(content)) return { fieldErrors: { content: ["Add article content before saving."] } };
 
-  const featuredImagePath = optionalText(parsed.data.featuredImagePath);
+  const featuredImagePath = resolveFeaturedImagePath(parsed.data.featuredImagePath, parsed.data.featuredImageIntent);
   if (featuredImagePath && !/^\/api\/uploads\/[0-9a-f-]{36}\.(?:jpe?g|png|webp|gif)$/i.test(featuredImagePath)) {
     return { fieldErrors: { featuredImagePath: ["Upload the featured image through Eraasim."] } };
   }

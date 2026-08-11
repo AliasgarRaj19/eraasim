@@ -4,24 +4,33 @@ import { Color } from "@tiptap/extension-color";
 import Image from "@tiptap/extension-image";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Youtube from "@tiptap/extension-youtube";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useRef, useState } from "react";
 import { uploadImage } from "@/components/image-upload";
-import { IMAGE_DISPLAY_SIZES, isImageDisplaySize, TEXT_COLORS, type ImageDisplaySize } from "@/src/blog/editor-controls";
+import { ResizableImageNode } from "@/components/resizable-image-node";
+import { isValidImageWidth, TEXT_COLORS } from "@/src/blog/editor-controls";
+import { captureEditorSelection, restoreEditorSelection, type EditorSelectionSnapshot } from "@/src/blog/editor-selection";
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
 
 const emptyContent = { type: "doc", content: [{ type: "paragraph" }] };
-const SizedImage = Image.extend({
+const ResizableImage = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
-      displaySize: {
-        default: "full",
-        parseHTML: (element) => isImageDisplaySize(element.getAttribute("data-display-size")) ? element.getAttribute("data-display-size") : "full",
-        renderHTML: (attributes) => ({ "data-display-size": isImageDisplaySize(attributes.displaySize) ? attributes.displaySize : "full" }),
+      width: {
+        default: null,
+        parseHTML: (element) => {
+          const width = Number(element.getAttribute("data-image-width"));
+          return isValidImageWidth(width) ? width : null;
+        },
+        renderHTML: (attributes) => isValidImageWidth(attributes.width) ? { "data-image-width": attributes.width } : {},
       },
+      displaySize: { default: null },
     };
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(ResizableImageNode);
   },
 });
 
@@ -30,6 +39,7 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
   const [message, setMessage] = useState<string>();
   const [uploading, setUploading] = useState(false);
   const imageInput = useRef<HTMLInputElement>(null);
+  const selectionSnapshot = useRef<EditorSelectionSnapshot | null>(null);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -39,25 +49,54 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
       }),
       TextStyle,
       Color.configure({ types: ["textStyle"] }),
-      SizedImage.configure({ allowBase64: false }),
+      ResizableImage.configure({ allowBase64: false }),
       Youtube.configure({ controls: true, nocookie: true, modestBranding: true }),
     ],
     content: initialContent,
+    onCreate: ({ editor: currentEditor }) => { selectionSnapshot.current = captureEditorSelection(currentEditor); },
+    onSelectionUpdate: ({ editor: currentEditor }) => { selectionSnapshot.current = captureEditorSelection(currentEditor); },
     onUpdate: ({ editor: currentEditor }) => setValue(JSON.stringify(currentEditor.getJSON())),
     editorProps: { attributes: { class: "editor-surface", "aria-label": "Long Description / Content" } },
   });
 
   if (!editor) return <div className="editor-loading">Loading editor…</div>;
 
+  const captureSelection = () => {
+    selectionSnapshot.current = captureEditorSelection(editor);
+  };
+
+  const restoreSelection = () => {
+    if (!selectionSnapshot.current) return false;
+    if (restoreEditorSelection(editor, selectionSnapshot.current)) return true;
+    setMessage("The previous selection is no longer available. Select the text again.");
+    return false;
+  };
+
+  const runWithSelection = (command: () => void) => {
+    if (restoreSelection()) command();
+  };
+
   const addLink = () => {
-    const { from, to, empty } = editor.state.selection;
-    if (empty) return setMessage("Select text before adding a link.");
+    if (!restoreSelection() || editor.state.selection.empty) return setMessage("Select text before adding a link.");
+    const savedSelection = captureEditorSelection(editor);
     const previous = editor.getAttributes("link").href as string | undefined;
     const href = window.prompt("Enter an http(s) or mailto link", previous ?? "https://");
     if (href === null) return;
+    selectionSnapshot.current = savedSelection;
+    if (!restoreSelection()) return;
+    if (!href) {
+      setMessage(undefined);
+      editor.chain().focus().unsetLink().run();
+      return;
+    }
+    try {
+      const url = new URL(href);
+      if (!["http:", "https:", "mailto:"].includes(url.protocol)) throw new Error();
+    } catch {
+      return setMessage("Enter a valid http(s) or mailto URL.");
+    }
     setMessage(undefined);
-    if (!href) editor.chain().focus().setTextSelection({ from, to }).unsetLink().run();
-    else editor.chain().focus().setTextSelection({ from, to }).setLink({ href }).run();
+    editor.chain().focus().setLink({ href }).run();
   };
 
   const addYouTube = () => {
@@ -75,7 +114,7 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
     setMessage(undefined);
     try {
       const src = await uploadImage(file);
-      editor.chain().focus().setImage({ src, alt: "" }).updateAttributes("image", { displaySize: "full" }).run();
+      editor.chain().focus().setImage({ src, alt: "" }).updateAttributes("image", { width: 100, displaySize: null }).run();
     } catch (uploadError) {
       setMessage(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
     } finally {
@@ -84,29 +123,24 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
     }
   };
 
-  const resizeImage = (displaySize: ImageDisplaySize) => {
-    editor.chain().focus().updateAttributes("image", { displaySize }).run();
-  };
-
   return (
     <div className="editor-field">
       <input type="hidden" name={name} value={value} />
-      <div className="editor-toolbar" role="toolbar" aria-label="Content formatting" onMouseDown={(event) => { if ((event.target as HTMLElement).closest("button")) event.preventDefault(); }}>
-        <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} aria-pressed={editor.isActive("bold")}>Bold</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} aria-pressed={editor.isActive("italic")}>Italic</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()} aria-pressed={editor.isActive("underline")}>Underline</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} aria-pressed={editor.isActive("heading", { level: 2 })}>H2</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} aria-pressed={editor.isActive("heading", { level: 3 })}>H3</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} aria-pressed={editor.isActive("bulletList")}>Bullets</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} aria-pressed={editor.isActive("orderedList")}>Numbers</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} aria-pressed={editor.isActive("blockquote")}>Quote</button>
+      <div className="editor-toolbar" role="toolbar" aria-label="Content formatting" onPointerDown={(event) => { if ((event.target as HTMLElement).closest("button")) { captureSelection(); event.preventDefault(); } }}>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleBold().run())} aria-pressed={editor.isActive("bold")}>Bold</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleItalic().run())} aria-pressed={editor.isActive("italic")}>Italic</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleUnderline().run())} aria-pressed={editor.isActive("underline")}>Underline</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleHeading({ level: 2 }).run())} aria-pressed={editor.isActive("heading", { level: 2 })}>H2</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleHeading({ level: 3 }).run())} aria-pressed={editor.isActive("heading", { level: 3 })}>H3</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleBulletList().run())} aria-pressed={editor.isActive("bulletList")}>Bullets</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleOrderedList().run())} aria-pressed={editor.isActive("orderedList")}>Numbers</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().toggleBlockquote().run())} aria-pressed={editor.isActive("blockquote")}>Quote</button>
         <button type="button" onClick={addLink} aria-pressed={editor.isActive("link")}>Link</button>
         <button type="button" onClick={() => imageInput.current?.click()} disabled={uploading}>{uploading ? "Uploading…" : "Add Image"}</button>
-        {IMAGE_DISPLAY_SIZES.map((size) => <button key={size} type="button" onClick={() => resizeImage(size)} disabled={!editor.isActive("image")} aria-pressed={editor.isActive("image", { displaySize: size })}>Image {size}</button>)}
         <button type="button" onClick={addYouTube}>Embed YouTube Video</button>
-        <button type="button" onClick={() => editor.chain().focus().unsetColor().run()} aria-label="Reset text color">Color default</button>
+        <button type="button" onClick={() => runWithSelection(() => editor.chain().focus().unsetColor().run())} aria-label="Reset text color">Color default</button>
         {Object.entries(TEXT_COLORS).map(([label, color]) => (
-          <button className="color-button" key={label} type="button" onClick={() => editor.chain().focus().setColor(color).run()} aria-label={`Text color ${label}`} aria-pressed={editor.isActive("textStyle", { color })}>
+          <button className="color-button" key={label} type="button" onClick={() => runWithSelection(() => editor.chain().focus().setColor(color).run())} aria-label={`Text color ${label}`} aria-pressed={editor.isActive("textStyle", { color })}>
             <span className="color-swatch" style={{ backgroundColor: color }} aria-hidden="true" />{label}
           </button>
         ))}

@@ -13,10 +13,12 @@
     "db:check": "drizzle-kit check",
     "check:edit-post": "tsx scripts/check-edit-post.ts",
     "check:editor-controls": "tsx scripts/check-editor-controls.ts",
+    "check:editor-selection": "tsx scripts/check-editor-selection.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
   },
   "dependencies": {
+    "@tiptap/core": "^3.30.0",
     "@tiptap/extension-color": "^3.30.0",
     "@tiptap/extension-image": "^3.30.0",
     "@tiptap/extension-text-style": "^3.30.0",

@@ -5,6 +5,7 @@ export const postInputSchema = z.object({
   slug: z.string().trim().min(1, "Link / Slug is required.").max(180),
   shortDescription: z.string().trim().min(1, "Short Description / Summary is required.").max(500, "Summary must be 500 characters or fewer."),
   featuredImagePath: z.string().trim().max(500).optional(),
+  featuredImageIntent: z.preprocess((value) => value ?? "keep", z.enum(["keep", "replace", "remove"])),
   categoryId: z.preprocess((value) => value ?? "", z.union([z.literal(""), z.uuid("Select a valid category.")])),
   content: z.string().min(1, "Long Description / Content is required."),
   seoTitle: z.string().trim().max(2_000, "SEO Title is too long.").optional(),

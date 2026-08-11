@@ -1,5 +1,5 @@
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
-import { ALLOWED_TEXT_COLORS, isImageDisplaySize } from "@/src/blog/editor-controls";
+import { ALLOWED_TEXT_COLORS, imageWidthFromAttributes, isValidImageWidth, LEGACY_IMAGE_WIDTHS } from "@/src/blog/editor-controls";
 
 type JsonObject = Record<string, unknown>;
 
@@ -69,8 +69,9 @@ function normalizeNode(value: unknown): JsonObject {
     if (!attrs || typeof attrs.src !== "string" || !uploadPathPattern.test(attrs.src)) {
       throw new Error("Content images must be uploaded through Eraasim.");
     }
-    if (attrs.displaySize !== undefined && !isImageDisplaySize(attrs.displaySize)) {
-      throw new Error("Content contains an unsupported image display size.");
+    if (attrs.width !== undefined && !isValidImageWidth(attrs.width)) throw new Error("Content contains an unsupported image width.");
+    if (attrs.displaySize !== undefined && (typeof attrs.displaySize !== "string" || !(attrs.displaySize in LEGACY_IMAGE_WIDTHS))) {
+      throw new Error("Content contains an unsupported legacy image display size.");
     }
     return {
       type: "image",
@@ -78,7 +79,7 @@ function normalizeNode(value: unknown): JsonObject {
         src: attrs.src,
         alt: typeof attrs.alt === "string" ? attrs.alt.slice(0, 300) : null,
         title: typeof attrs.title === "string" ? attrs.title.slice(0, 300) : null,
-        displaySize: isImageDisplaySize(attrs.displaySize) ? attrs.displaySize : "full",
+        width: imageWidthFromAttributes(attrs.width, attrs.displaySize),
       },
     };
   }

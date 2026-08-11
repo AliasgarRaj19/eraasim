@@ -58,6 +58,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
   const [seoTitle, setSeoTitle] = useState(initialValues.seoTitle);
   const [seoDescription, setSeoDescription] = useState(initialValues.seoDescription);
   const [featuredImage, setFeaturedImage] = useState(initialValues.featuredImagePath);
+  const [featuredImageIntent, setFeaturedImageIntent] = useState<"keep" | "replace" | "remove">("keep");
   const [imageStatus, setImageStatus] = useState<string>();
   const [imageUploading, setImageUploading] = useState(false);
 
@@ -73,6 +74,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
     try {
       const url = await uploadImage(file);
       setFeaturedImage(url);
+      setFeaturedImageIntent("replace");
       setImageStatus("Featured image uploaded.");
     } catch (error) {
       setImageStatus(error instanceof Error ? error.message : "Image upload failed.");
@@ -118,10 +120,12 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
           <section className="form-section" aria-labelledby="featured-heading">
             <div className="section-heading"><h2 id="featured-heading">Featured Image</h2><p>Keep the existing image or upload a JPEG, PNG, WebP, or GIF up to 5 MB.</p></div>
             <input type="hidden" name="featuredImagePath" value={featuredImage} />
+            <input type="hidden" name="featuredImageIntent" value={featuredImageIntent} />
             <label className="upload-control">Choose image
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => void uploadFeaturedImage(event.target.files?.[0])} disabled={pending || imageUploading} />
             </label>
             {featuredImage ? <Image className="featured-preview" src={featuredImage} alt="Featured image preview" width={960} height={540} unoptimized /> : null}
+            {featuredImage ? <button className="remove-image-button" type="button" onClick={() => { setFeaturedImage(""); setFeaturedImageIntent("remove"); setImageStatus("Featured image will be removed when the post is saved."); }} disabled={pending}>Remove Image</button> : null}
             {imageStatus ? <p className="field-note" role="status">{imageStatus}</p> : null}
             <FieldError messages={fieldError("featuredImagePath")} />
           </section>
