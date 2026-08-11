@@ -3,8 +3,9 @@
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { requireRouteAccess } from "@/src/auth/authorization";
-import { parseAndNormalizeContent } from "@/src/blog/content";
+import { contentHasBody, parseAndNormalizeContent } from "@/src/blog/content";
 import { parsePostFormData } from "@/src/blog/post-input";
+import { resolvePublishingState } from "@/src/blog/publishing";
 import { isValidSlug, slugify } from "@/src/blog/slug";
 import { db } from "@/src/db";
 import { activityLogs, categories, posts } from "@/src/db/schema";
@@ -18,36 +19,10 @@ function optionalText(value: string | undefined) {
   return value ? value : null;
 }
 
-function parseKolkataDateTime(value: string | undefined) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value ?? "");
-  if (!match) return null;
-  const [, year, month, day, hour, minute] = match.map(Number);
-  const kolkataOffset = (5 * 60 + 30) * 60_000;
-  const timestamp = Date.UTC(year, month - 1, day, hour, minute) - kolkataOffset;
-  const date = new Date(timestamp);
-  const localCheck = new Date(timestamp + kolkataOffset);
-  if (
-    Number.isNaN(date.getTime()) ||
-    localCheck.getUTCFullYear() !== year ||
-    localCheck.getUTCMonth() !== month - 1 ||
-    localCheck.getUTCDate() !== day ||
-    localCheck.getUTCHours() !== hour ||
-    localCheck.getUTCMinutes() !== minute
-  ) return null;
-  return date;
-}
-
-function contentHasBody(value: unknown): boolean {
-  if (!value || typeof value !== "object") return false;
-  const node = value as Record<string, unknown>;
-  if (node.type === "image" || node.type === "youtube") return true;
-  if (typeof node.text === "string" && node.text.trim()) return true;
-  return Array.isArray(node.content) && node.content.some(contentHasBody);
-}
-
 export async function createPost(_state: CreatePostState, formData: FormData): Promise<CreatePostState> {
   const parsed = parsePostFormData(formData);
   if (!parsed.success) return { error: "Review the highlighted fields and try again.", fieldErrors: parsed.error.flatten().fieldErrors };
+  if (parsed.data.intent === "preserve") return { error: "Choose a publishing action." };
 
   const slug = slugify(parsed.data.slug);
   if (!isValidSlug(slug) || slug !== parsed.data.slug.toLowerCase()) {
@@ -67,13 +42,15 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
     return { fieldErrors: { featuredImagePath: ["Upload the featured image through Eraasim."] } };
   }
 
-  const scheduledFor = parsed.data.intent === "scheduled" ? parseKolkataDateTime(parsed.data.scheduledLocal) : null;
-  if (parsed.data.intent === "scheduled" && (!scheduledFor || scheduledFor <= new Date())) {
-    return { fieldErrors: { scheduledLocal: ["Choose a future date and time in Asia/Kolkata."] } };
-  }
-
   const { session } = await requireRouteAccess("/blog/new");
   const now = new Date();
+  const publishing = resolvePublishingState(
+    { status: "draft", scheduledFor: null, publishedAt: null, unpublishedAt: null },
+    parsed.data.intent,
+    parsed.data.scheduledLocal,
+    now,
+  );
+  if (!publishing.ok) return { fieldErrors: { scheduledLocal: [publishing.error] } };
 
   try {
     await db.transaction(async (tx) => {
@@ -89,10 +66,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
         content,
         featuredImagePath,
         categoryId: parsed.data.categoryId || null,
-        status: parsed.data.intent,
-        scheduledFor,
-        publishedAt: parsed.data.intent === "published" ? now : null,
-        unpublishedAt: parsed.data.intent === "unpublished" ? now : null,
+        ...publishing.state,
         seoTitle: optionalText(parsed.data.seoTitle),
         seoDescription: optionalText(parsed.data.seoDescription),
         createdById: session.user.id,

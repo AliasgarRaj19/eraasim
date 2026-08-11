@@ -97,3 +97,11 @@ export function parseAndNormalizeContent(value: string) {
   if (content.type !== "doc") throw new Error("Content must be an editor document.");
   return content;
 }
+
+export function contentHasBody(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const node = value as Record<string, unknown>;
+  if (node.type === "image" || node.type === "youtube") return true;
+  if (typeof node.text === "string" && node.text.trim()) return true;
+  return Array.isArray(node.content) && node.content.some(contentHasBody);
+}

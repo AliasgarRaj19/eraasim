@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireRouteAccess } from "@/src/auth/authorization";
+import { requireAnyPermission } from "@/src/auth/authorization";
 import { MAX_IMAGE_BYTES, saveImage } from "@/src/uploads/storage";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await requireRouteAccess("/blog/new");
+  await requireAnyPermission(["blog.posts.create", "blog.posts.edit"]);
 
   try {
     const formData = await request.formData();

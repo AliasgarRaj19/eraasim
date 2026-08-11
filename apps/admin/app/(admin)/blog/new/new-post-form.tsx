@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
 import Image from "next/image";
+import { useActionState, useState } from "react";
 import { createPost, type CreatePostState } from "@/app/(admin)/blog/new/actions";
 import { uploadImage } from "@/components/image-upload";
 import { RichTextEditor } from "@/components/rich-text-editor";
@@ -9,19 +9,55 @@ import { slugify } from "@/src/blog/slug";
 
 const initialState: CreatePostState = {};
 
+export type PostFormValues = {
+  title: string;
+  slug: string;
+  shortDescription: string;
+  featuredImagePath: string;
+  categoryId: string;
+  content: Record<string, unknown>;
+  seoTitle: string;
+  seoDescription: string;
+  scheduledLocal: string;
+  status?: "draft" | "published" | "scheduled" | "unpublished";
+};
+
+const emptyValues: PostFormValues = {
+  title: "",
+  slug: "",
+  shortDescription: "",
+  featuredImagePath: "",
+  categoryId: "",
+  content: { type: "doc", content: [{ type: "paragraph" }] },
+  seoTitle: "",
+  seoDescription: "",
+  scheduledLocal: "",
+};
+
 function FieldError({ messages }: { messages?: string[] }) {
   return messages?.length ? <p className="field-error" role="alert">{messages[0]}</p> : null;
 }
 
 export function NewPostForm({ categories }: { categories: { id: string; name: string }[] }) {
-  const [state, action, pending] = useActionState(createPost, initialState);
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugEdited, setSlugEdited] = useState(false);
-  const [summary, setSummary] = useState("");
-  const [seoTitle, setSeoTitle] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
-  const [featuredImage, setFeaturedImage] = useState("");
+  return <PostForm categories={categories} action={createPost} initialValues={emptyValues} mode="create" />;
+}
+
+export function PostForm({ categories, action: submitAction, initialValues, mode, hiddenFields, updated }: {
+  categories: { id: string; name: string }[];
+  action: (state: CreatePostState, formData: FormData) => Promise<CreatePostState>;
+  initialValues: PostFormValues;
+  mode: "create" | "edit";
+  hiddenFields?: { postId: string; expectedUpdatedAt: string };
+  updated?: boolean;
+}) {
+  const [state, action, pending] = useActionState(submitAction, initialState);
+  const [title, setTitle] = useState(initialValues.title);
+  const [slug, setSlug] = useState(initialValues.slug);
+  const [slugEdited, setSlugEdited] = useState(mode === "edit");
+  const [summary, setSummary] = useState(initialValues.shortDescription);
+  const [seoTitle, setSeoTitle] = useState(initialValues.seoTitle);
+  const [seoDescription, setSeoDescription] = useState(initialValues.seoDescription);
+  const [featuredImage, setFeaturedImage] = useState(initialValues.featuredImagePath);
   const [imageStatus, setImageStatus] = useState<string>();
   const [imageUploading, setImageUploading] = useState(false);
 
@@ -48,14 +84,16 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
   const fieldError = (name: string) => state.fieldErrors?.[name];
 
   return (
-    <section className="new-post-page" aria-labelledby="new-post-title">
+    <section className="new-post-page" aria-labelledby="post-form-title">
       <div className="page-heading">
         <p className="page-eyebrow">Blog</p>
-        <h1 id="new-post-title">New Post</h1>
-        <p>Create article content and choose how it enters the publishing workflow.</p>
+        <h1 id="post-form-title">{mode === "edit" ? "Edit Post" : "New Post"}</h1>
+        <p>{mode === "edit" ? "Update article content or choose a new publishing state." : "Create article content and choose how it enters the publishing workflow."}</p>
       </div>
 
       <form className="post-form" action={action}>
+        {hiddenFields ? <><input type="hidden" name="postId" value={hiddenFields.postId} /><input type="hidden" name="expectedUpdatedAt" value={hiddenFields.expectedUpdatedAt} /></> : null}
+        {updated ? <p className="success-message" role="status">Post updated successfully.</p> : null}
         {state.error ? <p className="form-error" role="alert">{state.error}</p> : null}
 
         <div className="post-form-main">
@@ -67,7 +105,7 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
             </label>
             <label>Link / Slug
               <div className="slug-input"><span>/blog/</span><input name="slug" value={slug} onChange={(event) => { setSlugEdited(true); setSlug(slugify(event.target.value)); }} maxLength={180} required disabled={pending} /></div>
-              <small>Generated from the title until you edit it manually.</small>
+              <small>{mode === "edit" ? "The existing slug is retained unless you change it." : "Generated from the title until you edit it manually."}</small>
               <FieldError messages={fieldError("slug")} />
             </label>
             <label>Short Description / Summary
@@ -78,7 +116,7 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
           </section>
 
           <section className="form-section" aria-labelledby="featured-heading">
-            <div className="section-heading"><h2 id="featured-heading">Featured Image</h2><p>JPEG, PNG, WebP, or GIF up to 5 MB.</p></div>
+            <div className="section-heading"><h2 id="featured-heading">Featured Image</h2><p>Keep the existing image or upload a JPEG, PNG, WebP, or GIF up to 5 MB.</p></div>
             <input type="hidden" name="featuredImagePath" value={featuredImage} />
             <label className="upload-control">Choose image
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => void uploadFeaturedImage(event.target.files?.[0])} disabled={pending || imageUploading} />
@@ -90,7 +128,7 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
 
           <section className="form-section" aria-labelledby="content-heading">
             <div className="section-heading"><h2 id="content-heading">Long Description / Content</h2><p>Use structured formatting, Eraasim images, and controlled YouTube embeds.</p></div>
-            <RichTextEditor name="content" error={fieldError("content")?.[0]} />
+            <RichTextEditor name="content" error={fieldError("content")?.[0]} initialContent={initialValues.content} />
           </section>
 
           <section className="form-section" aria-labelledby="seo-heading">
@@ -111,9 +149,10 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
         <aside className="post-form-sidebar">
           <section className="form-section publishing-section" aria-labelledby="publishing-heading">
             <div className="section-heading"><h2 id="publishing-heading">Publishing</h2><p>Timestamps are entered in Asia/Kolkata and stored in UTC.</p></div>
+            {initialValues.status ? <p className="current-post-status">Current status: <span className={`post-status status-${initialValues.status}`}>{initialValues.status}</span></p> : null}
             <label>Select Category
               {categories.length === 0 ? <input type="hidden" name="categoryId" value="" /> : null}
-              <select name={categories.length ? "categoryId" : undefined} defaultValue="" disabled={pending || categories.length === 0}>
+              <select name={categories.length ? "categoryId" : undefined} defaultValue={initialValues.categoryId} disabled={pending || categories.length === 0}>
                 <option value="">No category</option>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
@@ -121,15 +160,16 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
             </label>
             {categories.length === 0 ? <p className="field-note">No categories available. Create a category first. Category is optional for now.</p> : null}
             <label>Schedule date and time
-              <input name="scheduledLocal" type="datetime-local" disabled={pending} />
-              <small>Required only when choosing Schedule Later.</small>
+              <input name="scheduledLocal" type="datetime-local" defaultValue={initialValues.scheduledLocal} disabled={pending} />
+              <small>Required when the resulting status is Scheduled.</small>
               <FieldError messages={fieldError("scheduledLocal")} />
             </label>
             <div className="publishing-actions">
+              {mode === "edit" ? <button className="primary-action" type="submit" name="intent" value="preserve" disabled={pending}>{pending ? "Saving…" : "Save Changes"}</button> : null}
               <button type="submit" name="intent" value="draft" disabled={pending}>{pending ? "Saving…" : "Save as Draft"}</button>
-              <button className="primary-action" type="submit" name="intent" value="published" disabled={pending}>Publish Now</button>
+              <button className={mode === "create" ? "primary-action" : undefined} type="submit" name="intent" value="published" disabled={pending}>Publish Now</button>
               <button type="submit" name="intent" value="scheduled" disabled={pending}>Schedule Later</button>
-              <button className="quiet-action" type="submit" name="intent" value="unpublished" disabled={pending}>Unpublished</button>
+              <button className="quiet-action" type="submit" name="intent" value="unpublished" disabled={pending}>{mode === "edit" ? "Unpublish" : "Unpublished"}</button>
             </div>
           </section>
         </aside>

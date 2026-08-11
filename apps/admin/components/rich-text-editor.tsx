@@ -8,9 +8,9 @@ import { useRef, useState } from "react";
 import { uploadImage } from "@/components/image-upload";
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
 
-const initialContent = { type: "doc", content: [{ type: "paragraph" }] };
+const emptyContent = { type: "doc", content: [{ type: "paragraph" }] };
 
-export function RichTextEditor({ name, error }: { name: string; error?: string }) {
+export function RichTextEditor({ name, error, initialContent = emptyContent }: { name: string; error?: string; initialContent?: Record<string, unknown> }) {
   const [value, setValue] = useState(JSON.stringify(initialContent));
   const [message, setMessage] = useState<string>();
   const [uploading, setUploading] = useState(false);

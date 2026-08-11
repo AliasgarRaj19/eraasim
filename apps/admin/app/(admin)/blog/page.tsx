@@ -1,9 +1,9 @@
 import { PostListPage } from "@/components/post-list-page";
-import { requireRouteAccess } from "@/src/auth/authorization";
+import { canUsePermission, requireRouteAccess } from "@/src/auth/authorization";
 import { getPostList, parsePage } from "@/src/blog/post-list";
 
 export default async function AllPostsPage({ searchParams }: { searchParams: Promise<{ created?: string; page?: string }> }) {
-  await requireRouteAccess("/blog");
+  const { authorization } = await requireRouteAccess("/blog");
   const { created, page } = await searchParams;
   const result = await getPostList("all", parsePage(page));
 
@@ -14,6 +14,7 @@ export default async function AllPostsPage({ searchParams }: { searchParams: Pro
       emptyMessage="There are no active posts yet."
       basePath="/blog"
       created={created === "1"}
+      canEdit={canUsePermission(authorization, "blog.posts.edit")}
       {...result}
     />
   );

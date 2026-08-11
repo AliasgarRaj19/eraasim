@@ -9,7 +9,7 @@ export const postInputSchema = z.object({
   content: z.string().min(1, "Long Description / Content is required."),
   seoTitle: z.string().trim().max(2_000, "SEO Title is too long.").optional(),
   seoDescription: z.string().trim().max(4_000, "SEO Description is too long.").optional(),
-  intent: z.enum(["draft", "published", "scheduled", "unpublished"]),
+  intent: z.enum(["preserve", "draft", "published", "scheduled", "unpublished"]),
   scheduledLocal: z.string().optional(),
 });
 

@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
+    "check:edit-post": "tsx scripts/check-edit-post.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
   },

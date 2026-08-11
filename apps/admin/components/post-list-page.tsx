@@ -11,6 +11,7 @@ type PostListPageProps = {
   total: number;
   totalPages: number;
   created?: boolean;
+  canEdit?: boolean;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-IN", {
@@ -33,7 +34,7 @@ function pageHref(basePath: string, page: number) {
   return page === 1 ? basePath : `${basePath}?page=${page}`;
 }
 
-export function PostListPage({ title, description, emptyMessage, basePath, items, page, total, totalPages, created }: PostListPageProps) {
+export function PostListPage({ title, description, emptyMessage, basePath, items, page, total, totalPages, created, canEdit }: PostListPageProps) {
   return (
     <section className="post-list-page" aria-labelledby="post-list-title">
       {created ? <p className="success-message" role="status">Post created successfully.</p> : null}
@@ -61,7 +62,7 @@ export function PostListPage({ title, description, emptyMessage, basePath, items
               <tbody>
                 {items.map((post) => (
                   <tr key={post.id}>
-                    <th scope="row"><span className="post-title">{post.title}</span></th>
+                    <th scope="row">{canEdit ? <Link className="post-title post-edit-link" href={`/blog/${post.id}/edit`}>{post.title}</Link> : <span className="post-title">{post.title}</span>}</th>
                     <td>{post.categoryName ?? "—"}</td>
                     <td><span className={`post-status status-${post.status}`}>{post.status}</span></td>
                     <td><strong>{post.authorName}</strong><small>{post.authorEmail}</small></td>

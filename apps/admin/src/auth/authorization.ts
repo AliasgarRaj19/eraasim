@@ -71,3 +71,21 @@ export async function requireRouteAccess(href: string) {
 
   return context;
 }
+
+export function canUsePermission(authorization: AdminAuthorization, permissionKey: string) {
+  return authorization.isMasterAdmin || authorization.permissionKeys.has(permissionKey);
+}
+
+export async function requirePermission(permissionKey: string) {
+  const context = await requireAdministrativeAccount();
+  if (!canUsePermission(context.authorization, permissionKey)) redirect("/dashboard?access=denied");
+  return context;
+}
+
+export async function requireAnyPermission(permissionKeys: readonly string[]) {
+  const context = await requireAdministrativeAccount();
+  if (!permissionKeys.some((permissionKey) => canUsePermission(context.authorization, permissionKey))) {
+    redirect("/dashboard?access=denied");
+  }
+  return context;
+}
