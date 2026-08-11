@@ -2,9 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { requireRouteAccess } from "@/src/auth/authorization";
 import { parseAndNormalizeContent } from "@/src/blog/content";
+import { parsePostFormData } from "@/src/blog/post-input";
 import { isValidSlug, slugify } from "@/src/blog/slug";
 import { db } from "@/src/db";
 import { activityLogs, categories, posts } from "@/src/db/schema";
@@ -13,19 +13,6 @@ export type CreatePostState = {
   error?: string;
   fieldErrors?: Record<string, string[]>;
 };
-
-const postInputSchema = z.object({
-  title: z.string().trim().min(1, "Title is required.").max(200, "Title must be 200 characters or fewer."),
-  slug: z.string().trim().min(1, "Link / Slug is required.").max(180),
-  shortDescription: z.string().trim().min(1, "Short Description / Summary is required.").max(500, "Summary must be 500 characters or fewer."),
-  featuredImagePath: z.string().trim().max(500).optional(),
-  categoryId: z.union([z.literal(""), z.uuid("Select a valid category.")]),
-  content: z.string().min(1, "Long Description / Content is required."),
-  seoTitle: z.string().trim().max(2_000, "SEO Title is too long.").optional(),
-  seoDescription: z.string().trim().max(4_000, "SEO Description is too long.").optional(),
-  intent: z.enum(["draft", "published", "scheduled", "unpublished"]),
-  scheduledLocal: z.string().optional(),
-});
 
 function optionalText(value: string | undefined) {
   return value ? value : null;
@@ -59,8 +46,8 @@ function contentHasBody(value: unknown): boolean {
 }
 
 export async function createPost(_state: CreatePostState, formData: FormData): Promise<CreatePostState> {
-  const parsed = postInputSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+  const parsed = parsePostFormData(formData);
+  if (!parsed.success) return { error: "Review the highlighted fields and try again.", fieldErrors: parsed.error.flatten().fieldErrors };
 
   const slug = slugify(parsed.data.slug);
   if (!isValidSlug(slug) || slug !== parsed.data.slug.toLowerCase()) {
@@ -127,7 +114,11 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
   } catch (error) {
     const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
     if (code === "23505") return { fieldErrors: { slug: ["This slug is already in use. Choose another."] } };
-    return { error: error instanceof Error ? error.message : "The post could not be created." };
+    console.error("Post creation transaction failed.", {
+      code: code || undefined,
+      name: error instanceof Error ? error.name : "UnknownError",
+    });
+    return { error: "The post could not be created. Try again or contact an administrator." };
   }
 
   redirect("/blog?created=1");

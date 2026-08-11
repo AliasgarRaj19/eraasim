@@ -112,10 +112,12 @@ export function NewPostForm({ categories }: { categories: { id: string; name: st
           <section className="form-section publishing-section" aria-labelledby="publishing-heading">
             <div className="section-heading"><h2 id="publishing-heading">Publishing</h2><p>Timestamps are entered in Asia/Kolkata and stored in UTC.</p></div>
             <label>Select Category
-              <select name="categoryId" defaultValue="" disabled={pending || categories.length === 0}>
+              {categories.length === 0 ? <input type="hidden" name="categoryId" value="" /> : null}
+              <select name={categories.length ? "categoryId" : undefined} defaultValue="" disabled={pending || categories.length === 0}>
                 <option value="">No category</option>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
+              <FieldError messages={fieldError("categoryId")} />
             </label>
             {categories.length === 0 ? <p className="field-note">No categories available. Create a category first. Category is optional for now.</p> : null}
             <label>Schedule date and time
