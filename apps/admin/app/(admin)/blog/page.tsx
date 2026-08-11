@@ -1,15 +1,20 @@
+import { PostListPage } from "@/components/post-list-page";
 import { requireRouteAccess } from "@/src/auth/authorization";
+import { getPostList, parsePage } from "@/src/blog/post-list";
 
-export default async function AllPostsPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
+export default async function AllPostsPage({ searchParams }: { searchParams: Promise<{ created?: string; page?: string }> }) {
   await requireRouteAccess("/blog");
-  const { created } = await searchParams;
+  const { created, page } = await searchParams;
+  const result = await getPostList("all", parsePage(page));
 
   return (
-    <section className="page-panel" aria-labelledby="page-title">
-      {created === "1" ? <p className="success-message" role="status">Post created successfully.</p> : null}
-      <p className="page-eyebrow">Eraasim Admin</p>
-      <h1 id="page-title">All Posts</h1>
-      <p>Post management and editing will be implemented in a later milestone.</p>
-    </section>
+    <PostListPage
+      title="All Posts"
+      description="Every active post across the publishing workflow. Deleted posts are excluded."
+      emptyMessage="There are no active posts yet."
+      basePath="/blog"
+      created={created === "1"}
+      {...result}
+    />
   );
 }
