@@ -68,6 +68,10 @@ All commands above terminate. Do not use development servers for production.
 
 The Drizzle SQL migrations in `apps/admin/drizzle/` are the production schema source of truth. Do not use destructive schema push as a deployment strategy.
 
+### Future Blog deletion rule
+
+Blog deletion is not implemented yet. When that module is built, ordinary deletion must be a soft delete: deleted posts must disappear from the public website, Draft Posts, and All Posts, and appear in Deleted Posts. Deleted Posts must support restoration, while permanent deletion must be restricted to the Master Admin.
+
 After PostgreSQL is healthy and before starting or updating the admin application:
 
 ```sh
