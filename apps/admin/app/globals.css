@@ -188,6 +188,13 @@ a { color: inherit; }
 .pagination div { display: flex; align-items: center; gap: .75rem; }
 .pagination a, .pagination div > span { padding: .45rem .65rem; border: 1px solid #d4d8d3; border-radius: .4rem; background: white; text-decoration: none; }
 .pagination span[aria-disabled="true"] { color: #a6aaa5; background: #f3f4f2; }
+.post-actions { display: flex; min-width: 9rem; flex-wrap: wrap; gap: .45rem; }
+.post-action { min-height: 2rem; padding: .35rem .6rem; border: 1px solid #9eb6a5; background: #f3faf5; color: #285238; font-size: .72rem; }
+.post-action.destructive-action { border-color: #d8a9a1; background: #fff3f1; color: #992f24; }
+.post-confirmation { width: 18rem; padding: .65rem; border: 1px solid #cbd8ce; border-radius: .45rem; background: #f7fbf8; }
+.post-confirmation.destructive-confirmation { border-color: #d8a9a1; background: #fff6f4; }
+.post-confirmation p { margin: 0 0 .6rem; color: var(--ink); font-size: .72rem; line-height: 1.45; }
+.post-confirmation div { display: flex; flex-wrap: wrap; gap: .4rem; }
 
 @media (max-width: 650px) {
   .list-page-header { align-items: stretch; flex-direction: column; }

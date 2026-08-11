@@ -1,12 +1,13 @@
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/src/db";
 import { categories, posts, staffAccounts } from "@/src/db/schema";
 
 export const POSTS_PER_PAGE = 20;
-export type PostListFilter = "all" | "draft";
+export type PostListFilter = "all" | "draft" | "deleted";
 
 export function postListPredicate(filter: PostListFilter) {
   const notDeleted = isNull(posts.deletedAt);
+  if (filter === "deleted") return isNotNull(posts.deletedAt);
   return filter === "draft" ? and(eq(posts.status, "draft"), notDeleted) : notDeleted;
 }
 
@@ -32,6 +33,7 @@ export async function getPostList(filter: PostListFilter, requestedPage: number)
     updatedAt: posts.updatedAt,
     publishedAt: posts.publishedAt,
     scheduledFor: posts.scheduledFor,
+    deletedAt: posts.deletedAt,
   })
     .from(posts)
     .leftJoin(categories, eq(posts.categoryId, categories.id))

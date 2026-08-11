@@ -14,7 +14,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
       { label: "New Post", href: "/blog/new", permission: "blog.posts.create" },
       { label: "Draft Posts", href: "/blog/drafts", permission: "blog.posts.view" },
       { label: "All Posts", href: "/blog", permission: "blog.posts.view" },
-      { label: "Deleted Posts", href: "/blog/deleted", permission: "blog.posts.view" },
+      { label: "Deleted Posts", href: "/blog/deleted", permission: "blog.posts.view_deleted" },
     ],
   },
   {

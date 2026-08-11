@@ -16,6 +16,7 @@
     "check:image-serialization": "tsx scripts/check-image-serialization.ts",
     "check:editor-selection": "tsx scripts/check-editor-selection.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
+    "check:post-deletion": "tsx scripts/check-post-deletion.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
   },
   "dependencies": {

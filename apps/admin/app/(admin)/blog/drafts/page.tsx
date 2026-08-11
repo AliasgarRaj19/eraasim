@@ -1,4 +1,5 @@
 import { PostListPage } from "@/components/post-list-page";
+import { softDeletePost } from "@/app/(admin)/blog/actions";
 import { canUsePermission, requireRouteAccess } from "@/src/auth/authorization";
 import { getPostList, parsePage } from "@/src/blog/post-list";
 
@@ -14,6 +15,8 @@ export default async function DraftPostsPage({ searchParams }: { searchParams: P
       emptyMessage="There are no draft posts."
       basePath="/blog/drafts"
       canEdit={canUsePermission(authorization, "blog.posts.edit")}
+      canDelete={canUsePermission(authorization, "blog.posts.delete")}
+      softDeleteAction={softDeletePost}
       {...result}
     />
   );
