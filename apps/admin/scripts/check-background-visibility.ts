@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { defaultHomeConfig, homeConfigSchema, promoteDraft } from "../src/home-page/config";
-import { resolveHeroBackgroundVisibility } from "../../../src/hero-background";
+
+// Keep this regression inside the Admin Docker context. This is the public
+// helper's pure, documented mapping oracle, not an Admin runtime dependency.
+function resolveHeroBackgroundVisibility(value: number) {
+  const intensity = Math.min(200, Math.max(0, value));
+  return intensity <= 100
+    ? { imageOpacity: intensity / 100, overlayOpacity: 0.82 }
+    : { imageOpacity: 1, overlayOpacity: 0.82 * ((200 - intensity) / 100) };
+}
 
 const withBackground = (value: unknown) => homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, backgroundImageOpacity: value } });
 for (const value of [0, 50, 99, 100, 110, 150, 200]) assert(withBackground(value).success, `${value} must be accepted`);
