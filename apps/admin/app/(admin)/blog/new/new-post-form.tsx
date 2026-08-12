@@ -61,6 +61,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
   const [seoDescription, setSeoDescription] = useState(initialValues.seoDescription);
   const [featuredImage, setFeaturedImage] = useState(initialValues.featuredImagePath);
   const [featuredImageIntent, setFeaturedImageIntent] = useState<"keep" | "replace" | "remove">("keep");
+  const [categoryId, setCategoryId] = useState(initialValues.categoryId);
   const [imageStatus, setImageStatus] = useState<string>();
   const [imageUploading, setImageUploading] = useState(false);
 
@@ -157,8 +158,8 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
             <div className="section-heading"><h2 id="publishing-heading">Publishing</h2><p>Timestamps are entered in Asia/Kolkata and stored in UTC.</p></div>
             {initialValues.status ? <p className="current-post-status">Current status: <span className={`post-status status-${initialValues.status}`}>{initialValues.status}</span></p> : null}
             <label>Select Category
-              {categories.length === 0 ? <input type="hidden" name="categoryId" value="" /> : null}
-              <select name={categories.length ? "categoryId" : undefined} defaultValue={initialValues.categoryId} disabled={pending || categories.length === 0}>
+              <input type="hidden" name="categoryId" value={categoryId} />
+              <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={pending || categories.length === 0}>
                 <option value="">No category</option>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}
               </select>

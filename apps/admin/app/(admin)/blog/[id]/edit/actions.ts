@@ -7,6 +7,7 @@ import type { CreatePostState } from "@/app/(admin)/blog/new/actions";
 import { requirePermission } from "@/src/auth/authorization";
 import { contentHasBody, parseAndNormalizeContent } from "@/src/blog/content";
 import { resolveFeaturedImagePath } from "@/src/blog/featured-image";
+import { validatedCategoryAssignment } from "@/src/blog/category-assignment";
 import { parsePostFormData } from "@/src/blog/post-input";
 import { competingSlugPredicate, editablePostPredicate } from "@/src/blog/post-edit";
 import { resolvePublishingState } from "@/src/blog/publishing";
@@ -66,10 +67,12 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
       const [duplicate] = await tx.select({ id: posts.id }).from(posts).where(competingSlugPredicate(current.id, slug)).limit(1);
       if (duplicate) throw new Error("SLUG_DUPLICATE");
 
+      let foundCategoryId: string | undefined;
       if (parsed.data.categoryId) {
         const [category] = await tx.select({ id: categories.id }).from(categories).where(eq(categories.id, parsed.data.categoryId)).limit(1);
-        if (!category) throw new Error("CATEGORY_UNAVAILABLE");
+        foundCategoryId = category?.id;
       }
+      const categoryId = validatedCategoryAssignment(parsed.data.categoryId, foundCategoryId);
 
       const publishing = resolvePublishingState(current, parsed.data.intent, parsed.data.scheduledLocal, now);
       if (!publishing.ok) throw new Error("SCHEDULE_INVALID");
@@ -80,7 +83,7 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
         shortDescription: parsed.data.shortDescription,
         content,
         featuredImagePath,
-        categoryId: parsed.data.categoryId || null,
+        categoryId,
         seoTitle: optionalText(parsed.data.seoTitle),
         seoDescription: optionalText(parsed.data.seoDescription),
         ...publishing.state,

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireRouteAccess } from "@/src/auth/authorization";
 import { contentHasBody, parseAndNormalizeContent } from "@/src/blog/content";
 import { resolveFeaturedImagePath } from "@/src/blog/featured-image";
+import { validatedCategoryAssignment } from "@/src/blog/category-assignment";
 import { parsePostFormData } from "@/src/blog/post-input";
 import { resolvePublishingState } from "@/src/blog/publishing";
 import { isValidSlug, slugify } from "@/src/blog/slug";
@@ -55,10 +56,12 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
 
   try {
     await db.transaction(async (tx) => {
+      let foundCategoryId: string | undefined;
       if (parsed.data.categoryId) {
         const [category] = await tx.select({ id: categories.id }).from(categories).where(eq(categories.id, parsed.data.categoryId)).limit(1);
-        if (!category) throw new Error("The selected category is no longer available.");
+        foundCategoryId = category?.id;
       }
+      const categoryId = validatedCategoryAssignment(parsed.data.categoryId, foundCategoryId);
 
       const [post] = await tx.insert(posts).values({
         title: parsed.data.title,
@@ -66,7 +69,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
         shortDescription: parsed.data.shortDescription,
         content,
         featuredImagePath,
-        categoryId: parsed.data.categoryId || null,
+        categoryId,
         ...publishing.state,
         seoTitle: optionalText(parsed.data.seoTitle),
         seoDescription: optionalText(parsed.data.seoDescription),
@@ -87,6 +90,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
       })));
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "CATEGORY_UNAVAILABLE") return { fieldErrors: { categoryId: ["The selected category is no longer available."] } };
     const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
     if (code === "23505") return { fieldErrors: { slug: ["This slug is already in use. Choose another."] } };
     console.error("Post creation transaction failed.", {
