@@ -46,5 +46,8 @@ const actionSource = readFileSync(new URL("../app/(admin)/categories/actions.ts"
 assert(actionSource.includes("SLUG_DUPLICATE") && actionSource.includes('code === "23505"'));
 assert(actionSource.includes("eq(posts.categoryId, category.id)"), "all post references, including deleted posts, must block deletion");
 assert(actionSource.includes('.for("update")'));
+const childRouteSource = readFileSync(new URL("../app/(admin)/categories/[id]/children/new/page.tsx", import.meta.url), "utf8");
+assert(childRouteSource.includes("params: Promise<{ id: string }>") && childRouteSource.includes("const { id } = await params"), "child creation must share the [id] dynamic segment with edit");
+assert(!childRouteSource.includes("params: Promise<{ parentId:"), "the conflicting [parentId] parameter must not remain");
 
 console.log("PASS: parent/child rules, self/third-level rejection, global slug handling, delete blockers, hierarchical Blog options, permissions, locking, and additive migration verified.");
