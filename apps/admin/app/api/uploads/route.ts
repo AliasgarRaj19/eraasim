@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireAnyPermission } from "@/src/auth/authorization";
+import { authorizeAnyPermission } from "@/src/auth/authorization";
 import { MAX_IMAGE_BYTES, saveImage } from "@/src/uploads/storage";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await requireAnyPermission(["blog.posts.create", "blog.posts.edit", "pages.home.edit"]);
+  const access = await authorizeAnyPermission(["blog.posts.create", "blog.posts.edit", "pages.home.edit"]);
+  if (!access.authorized) return NextResponse.json({ error: access.status === 401 ? "Authentication is required." : "You do not have permission to upload images." }, { status: access.status });
 
   try {
     const formData = await request.formData();

@@ -31,6 +31,7 @@ const oldHome = { ...defaultHomeConfig, hero: { visible: true, eyebrow: "Old", h
 const resolvedOldHome = resolvePublishedHome(oldHome);
 assert.equal(resolvedOldHome.hero.eyebrowSize, 11); assert.equal(resolvedOldHome.hero.headingSize, 96); assert.equal(resolvedOldHome.hero.descriptionSize, 22);
 assert.equal(resolvedOldHome.hero.backgroundImagePath, ""); assert.equal(resolvedOldHome.hero.showBackgroundImage, false); assert.equal(resolvedOldHome.hero.profileImagePath, ""); assert.equal(resolvedOldHome.hero.showProfileImage, false);
+assert.equal(resolvedOldHome.hero.showEyebrow, true); assert.equal(resolvedOldHome.hero.showHeading, true); assert.equal(resolvedOldHome.hero.showDescription, true); assert.equal(resolvedOldHome.hero.showCta, true);
 
 const content = { type: "doc", content: [
   { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Heading" }] },

@@ -89,3 +89,12 @@ export async function requireAnyPermission(permissionKeys: readonly string[]) {
   }
   return context;
 }
+
+export async function authorizeAnyPermission(permissionKeys: readonly string[]) {
+  const session = await auth();
+  if (!session?.user?.id) return { authorized: false as const, status: 401 as const };
+  const authorization = await getAdminAuthorization(session.user.id);
+  if (!authorization) return { authorized: false as const, status: 401 as const };
+  if (!permissionKeys.some((permissionKey) => canUsePermission(authorization, permissionKey))) return { authorized: false as const, status: 403 as const };
+  return { authorized: true as const, session, authorization };
+}
