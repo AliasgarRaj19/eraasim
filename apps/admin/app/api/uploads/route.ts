@@ -5,7 +5,7 @@ import { MAX_IMAGE_BYTES, saveImage } from "@/src/uploads/storage";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await requireAnyPermission(["blog.posts.create", "blog.posts.edit"]);
+  await requireAnyPermission(["blog.posts.create", "blog.posts.edit", "pages.home.edit"]);
 
   try {
     const formData = await request.formData();

@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { TiptapContent, tiptapRenderSecurity } from "../components/tiptap-content";
 import { PostCard } from "../components/post-card";
 import { PUBLIC_MEDIA_PATTERN, publicMediaUrl } from "../src/media";
+import { defaultHomeConfig, resolvePublishedHome } from "../src/home-page";
 import { PUBLIC_POST_SQL } from "../src/public-blog";
 import { getPool } from "../src/db";
 
@@ -24,6 +25,12 @@ const uuid = "123e4567-e89b-42d3-a456-426614174000";
 assert(PUBLIC_MEDIA_PATTERN.test(`${uuid}.webp`));
 assert.equal(publicMediaUrl(`/api/uploads/${uuid}.webp`), `/media/${uuid}.webp`);
 for (const unsafe of ["../../secret", "/api/uploads/../secret", "/api/uploads/not-a-uuid.png", "/etc/passwd", "/api/uploads/test.svg"]) assert.equal(publicMediaUrl(unsafe), null);
+const mediaSource = readFileSync(new URL("../src/media.ts", import.meta.url), "utf8");
+assert(mediaSource.includes("availablePublicMediaUrl") && mediaSource.includes("await stat") && mediaSource.includes("catch { return null; }"), "missing Hero media must fail safely");
+const oldHome = { ...defaultHomeConfig, hero: { visible: true, eyebrow: "Old", heading: "Old", description: "Old", ctaLabel: "Read", ctaDestination: "/blog" } };
+const resolvedOldHome = resolvePublishedHome(oldHome);
+assert.equal(resolvedOldHome.hero.eyebrowSize, 11); assert.equal(resolvedOldHome.hero.headingSize, 96); assert.equal(resolvedOldHome.hero.descriptionSize, 22);
+assert.equal(resolvedOldHome.hero.backgroundImagePath, ""); assert.equal(resolvedOldHome.hero.showBackgroundImage, false); assert.equal(resolvedOldHome.hero.profileImagePath, ""); assert.equal(resolvedOldHome.hero.showProfileImage, false);
 
 const content = { type: "doc", content: [
   { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Heading" }] },

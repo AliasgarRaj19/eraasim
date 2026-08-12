@@ -6,7 +6,7 @@ assert(homeConfigSchema.safeParse(defaultHomeConfig).success);
 assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, sectionOrder: ["hero", "hero", "categoryDiscovery"] }).success === false);
 for (const count of [0, 13, 2.5]) assert(!homeConfigSchema.safeParse({ ...defaultHomeConfig, latestStories: { ...defaultHomeConfig.latestStories, postCount: count } }).success);
 for (const url of ["javascript:alert(1)", "//evil.example", "data:text/html,test"]) assert(!homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, ctaDestination: url } }).success);
-for (const url of ["/blog", "/categories/food", "https://example.com/story"]) assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, ctaDestination: url } }).success);
+for (const url of ["/", "/blog"]) assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, ctaDestination: url } }).success);
 const published = { ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, heading: "Published" } }; const draft = { ...published, hero: { ...published.hero, heading: "Draft" } };
 assert.equal(promoteDraft(draft, published, false)?.hero.heading, "Published");
 assert.equal(promoteDraft(draft, published, true)?.hero.heading, "Draft");

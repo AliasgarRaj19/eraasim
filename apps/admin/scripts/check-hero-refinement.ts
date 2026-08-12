@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { defaultHomeConfig, homeConfigSchema, promoteDraft } from "../src/home-page/config";
+const image = "/api/uploads/123e4567-e89b-42d3-a456-426614174000.webp";
+const oldConfig = { ...defaultHomeConfig, hero: { visible: true, eyebrow: "Old", heading: "Old heading", description: "Old description", ctaLabel: "Read", ctaDestination: "/blog" } };
+const compatible = homeConfigSchema.parse(oldConfig);
+assert.deepEqual({ eyebrow: compatible.hero.eyebrowSize, heading: compatible.hero.headingSize, description: compatible.hero.descriptionSize }, { eyebrow: 11, heading: 96, description: 22 });
+assert.equal(compatible.hero.backgroundImagePath, ""); assert.equal(compatible.hero.showBackgroundImage, false); assert.equal(compatible.hero.profileImagePath, ""); assert.equal(compatible.hero.showProfileImage, false);
+const hero = (changes: Record<string, unknown>) => homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, ...changes } });
+for (const [field, min, max] of [["eyebrowSize", 10, 40], ["headingSize", 20, 100], ["descriptionSize", 12, 48]] as const) {
+  assert(hero({ [field]: min }).success && hero({ [field]: max }).success);
+  for (const value of [min - 1, max + 1, 0, -1, Number.NaN, `${min}px`, "calc(1px)"]) assert(!hero({ [field]: value }).success, `${field} must reject ${String(value)}`);
+}
+for (const ctaDestination of ["/", "/blog"]) assert(hero({ ctaDestination }).success);
+for (const ctaDestination of ["/about", "https://example.com", "javascript:alert(1)", "//evil.example"]) assert(!hero({ ctaDestination }).success);
+assert(hero({ backgroundImagePath: image, showBackgroundImage: true, profileImagePath: image, showProfileImage: false }).success);
+assert(hero({ backgroundImagePath: image, showBackgroundImage: false, profileImagePath: image, showProfileImage: true }).success);
+assert(!hero({ backgroundImagePath: "/broken.jpg" }).success);
+const published = hero({ backgroundImagePath: image, showBackgroundImage: true }).data!;
+const draft = { ...published, hero: { ...published.hero, backgroundImagePath: "", showBackgroundImage: false, profileImagePath: image, showProfileImage: true } };
+assert.deepEqual(promoteDraft(draft, published, false), published);
+assert.deepEqual(promoteDraft(draft, published, true), draft);
+const form = readFileSync(new URL("../components/home-page-form.tsx", import.meta.url), "utf8");
+assert(form.includes("Approximately 50-60") && form.includes("Approximately 150-160") && !form.includes("Ã¢â‚¬â€œ"));
+assert(form.includes('type="button"') && form.includes("current + amount") && form.includes("valueAsNumber"));
+assert(form.includes("heroShowBackgroundImage") && form.includes("heroShowProfileImage") && form.includes("heroDestinations.map"));
+const upload = readFileSync(new URL("../app/api/uploads/route.ts", import.meta.url), "utf8");
+assert(upload.includes('"pages.home.edit"') && upload.includes('"blog.posts.create"') && upload.includes('"blog.posts.edit"'));
+const publicPage = readFileSync(new URL("../../../app/page.tsx", import.meta.url), "utf8");
+assert(publicPage.includes("availablePublicMediaUrl") && publicPage.includes("config.hero.showBackgroundImage") && publicPage.includes("config.hero.showProfileImage") && publicPage.includes("config.useLegacyHeroMark"));
+assert(publicPage.includes("--hero-eyebrow-size") && publicPage.includes("--hero-heading-size") && publicPage.includes("--hero-description-size"));
+const publicCss = readFileSync(new URL("../../../app/globals.css", import.meta.url), "utf8");
+assert(publicCss.includes("clamp(") && publicCss.includes("overflow-wrap: anywhere") && publicCss.includes("object-fit: cover"));
+console.log("PASS: Hero media visibility, Draft/Published isolation, numeric typography, CTA allowlist, SEO guidance, backward defaults, responsive styles, and upload authorization verified.");
