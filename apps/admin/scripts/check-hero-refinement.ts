@@ -6,6 +6,7 @@ const oldConfig = { ...defaultHomeConfig, hero: { visible: true, eyebrow: "Old",
 const compatible = homeConfigSchema.parse(oldConfig);
 assert.deepEqual({ eyebrow: compatible.hero.eyebrowSize, heading: compatible.hero.headingSize, description: compatible.hero.descriptionSize }, { eyebrow: 11, heading: 96, description: 22 });
 assert.equal(compatible.hero.backgroundImagePath, ""); assert.equal(compatible.hero.showBackgroundImage, false); assert.equal(compatible.hero.profileImagePath, ""); assert.equal(compatible.hero.showProfileImage, false);
+assert.equal(compatible.hero.backgroundImageOpacity, 100); assert.equal(compatible.hero.profileImageOpacity, 100);
 assert.equal(compatible.hero.showEyebrow, true); assert.equal(compatible.hero.showHeading, true); assert.equal(compatible.hero.showDescription, true); assert.equal(compatible.hero.showCta, true);
 const hero = (changes: Record<string, unknown>) => homeConfigSchema.safeParse({ ...defaultHomeConfig, hero: { ...defaultHomeConfig.hero, ...changes } });
 for (const [field, min, max] of [["eyebrowSize", 10, 40], ["headingSize", 20, 100], ["descriptionSize", 12, 48]] as const) {
@@ -22,6 +23,10 @@ const draft = { ...published, hero: { ...published.hero, backgroundImagePath: ""
 assert.deepEqual(promoteDraft(draft, published, false), published);
 assert.deepEqual(promoteDraft(draft, published, true), draft);
 for (const flag of ["showEyebrow", "showHeading", "showDescription", "showCta"] as const) assert(hero({ [flag]: false }).success);
+for (const field of ["backgroundImageOpacity", "profileImageOpacity"] as const) {
+  for (const value of [0, 50, 100]) assert(hero({ [field]: value }).success);
+  for (const value of [-1, 101, 50.5, "50", "50%", "calc(1)", Number.NaN]) assert(!hero({ [field]: value }).success);
+}
 const visibilityDraft = { ...published, hero: { ...published.hero, showEyebrow: false, showHeading: true, showDescription: false, showCta: false } };
 assert.deepEqual(promoteDraft(visibilityDraft, published, false), published);
 assert.deepEqual(promoteDraft(visibilityDraft, published, true), visibilityDraft);
@@ -29,6 +34,7 @@ const form = readFileSync(new URL("../components/home-page-form.tsx", import.met
 assert(form.includes("Approximately 50-60") && form.includes("Approximately 150-160") && !form.includes("Ã¢â‚¬â€œ"));
 assert(form.includes('type="button"') && form.includes("current + amount") && form.includes("valueAsNumber"));
 assert(form.includes("heroShowBackgroundImage") && form.includes("heroShowProfileImage") && form.includes("heroDestinations.map"));
+assert(form.includes('name={`${prefix}ImageOpacity`}') && form.includes("initialOpacity={config.hero.backgroundImageOpacity}") && form.includes("initialOpacity={config.hero.profileImageOpacity}") && form.includes("1600 × 900") && form.includes("500 × 500"));
 for (const control of ["heroShowEyebrow", "heroShowHeading", "heroShowDescription", "heroShowCta"]) assert(form.includes(control));
 const upload = readFileSync(new URL("../app/api/uploads/route.ts", import.meta.url), "utf8");
 assert(upload.includes('"pages.home.edit"') && upload.includes('"blog.posts.create"') && upload.includes('"blog.posts.edit"'));
@@ -37,6 +43,8 @@ const publicPage = readFileSync(new URL("../../../app/page.tsx", import.meta.url
 assert(publicPage.includes("availablePublicMediaUrl") && publicPage.includes("config.hero.showBackgroundImage") && publicPage.includes("config.hero.showProfileImage") && publicPage.includes("config.useLegacyHeroMark"));
 for (const flag of ["showEyebrow", "showHeading", "showDescription", "showCta"]) assert(publicPage.includes(`config.hero.${flag}`));
 assert(publicPage.includes("--hero-eyebrow-size") && publicPage.includes("--hero-heading-size") && publicPage.includes("--hero-description-size"));
+assert(publicPage.includes("config.hero.backgroundImageOpacity / 100") && publicPage.includes("config.hero.profileImageOpacity / 100"));
 const publicCss = readFileSync(new URL("../../../app/globals.css", import.meta.url), "utf8");
 assert(publicCss.includes("clamp(") && publicCss.includes("overflow-wrap: anywhere") && publicCss.includes("object-fit: cover"));
+assert(publicCss.includes("opacity: var(--hero-background-opacity)") && publicCss.includes("opacity: var(--hero-profile-opacity)"));
 console.log("PASS: Hero media visibility, Draft/Published isolation, numeric typography, CTA allowlist, SEO guidance, backward defaults, responsive styles, and upload authorization verified.");

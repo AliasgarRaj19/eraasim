@@ -130,4 +130,12 @@ Authentication verification:
 4. Confirm a private/incognito request to `/dashboard` redirects to `/login`.
 5. Logout and confirm `/dashboard` is protected again.
 
-Nginx, DNS, TLS, production deployment, backups, and runtime verification remain operator responsibilities.
+Nginx, DNS, TLS, production deployment, backups, and runtime verification remain operator responsibilities. The Eraasim Admin site configuration is version-controlled at `deployment/nginx/admin.eraasim.signalgrowth.in.conf`. It proxies to `127.0.0.1:5201` and permits a 6 MB request body so multipart overhead can reach the application's authoritative 5 MB image limit.
+
+After reviewing the tracked file on the VPS, apply only this site with:
+
+```sh
+sudo deployment/nginx/install-admin-site.sh
+```
+
+The installer backs up an existing `/etc/nginx/sites-available/admin.eraasim.signalgrowth.in`, installs the tracked replacement, runs `nginx -t`, restores the backup if validation fails, and reloads Nginx only after successful validation. It neither restarts other services nor modifies certificates. Certificate material remains owned by Certbot under `/etc/letsencrypt`; the tracked Nginx file only references the standard live certificate, options, and DH-parameter paths.

@@ -14,7 +14,7 @@ export default async function Home() {
     config.hero.showBackgroundImage ? availablePublicMediaUrl(config.hero.backgroundImagePath) : null,
     config.hero.showProfileImage ? availablePublicMediaUrl(config.hero.profileImagePath) : null,
   ]);
-  const heroStyle = { "--hero-eyebrow-size": `${config.hero.eyebrowSize}px`, "--hero-heading-size": `${config.hero.headingSize}px`, "--hero-description-size": `${config.hero.descriptionSize}px`, ...(backgroundImage ? { "--hero-background-image": `url(\"${backgroundImage}\")` } : {}) } as CSSProperties;
+  const heroStyle = { "--hero-eyebrow-size": `${config.hero.eyebrowSize}px`, "--hero-heading-size": `${config.hero.headingSize}px`, "--hero-description-size": `${config.hero.descriptionSize}px`, "--hero-background-opacity": config.hero.backgroundImageOpacity / 100, "--hero-profile-opacity": config.hero.profileImageOpacity / 100, ...(backgroundImage ? { "--hero-background-image": `url(\"${backgroundImage}\")` } : {}) } as CSSProperties;
   const [posts, categories] = await Promise.all([config.latestStories.visible ? getLatestPosts(config.latestStories.postCount) : [], config.categoryDiscovery.visible ? getPublicCategories() : []]);
   const parents = categories.filter((category) => category.parentId === null); const children = categories.filter((category) => category.parentId !== null);
   const sections: Record<HomeConfig["sectionOrder"][number], React.ReactNode> = {

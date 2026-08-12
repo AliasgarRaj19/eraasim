@@ -18,6 +18,7 @@
     "check:home-cms": "tsx scripts/check-home-cms.ts",
     "check:hero-refinement": "tsx scripts/check-hero-refinement.ts",
     "check:home-upload": "tsx scripts/check-home-upload.ts",
+    "check:upload-storage": "tsx scripts/check-upload-storage.ts",
     "check:editor-selection": "tsx scripts/check-editor-selection.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
     "check:post-deletion": "tsx scripts/check-post-deletion.ts",
