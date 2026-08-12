@@ -15,6 +15,13 @@
       "when": 1786471556594,
       "tag": "0001_mysterious_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786494587753,
+      "tag": "0002_category_hierarchy",
+      "breakpoints": true
     }
   ]
 }

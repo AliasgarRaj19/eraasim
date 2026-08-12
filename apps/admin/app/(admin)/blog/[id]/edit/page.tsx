@@ -8,6 +8,7 @@ import { editablePostPredicate } from "@/src/blog/post-edit";
 import { formatKolkataDateTime } from "@/src/blog/publishing";
 import { db } from "@/src/db";
 import { categories, posts } from "@/src/db/schema";
+import { hierarchicalCategoryOptions } from "@/src/categories/category";
 
 export default async function EditPostPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
@@ -32,14 +33,14 @@ export default async function EditPostPage({ params, searchParams }: {
       status: posts.status,
       updatedAt: posts.updatedAt,
     }).from(posts).where(editablePostPredicate(id)).limit(1),
-    db.select({ id: categories.id, name: categories.name }).from(categories).orderBy(asc(categories.name)),
+    db.select({ id: categories.id, name: categories.name, parentId: categories.parentId }).from(categories).orderBy(asc(categories.name)),
     searchParams,
   ]);
   if (!post) notFound();
 
   return (
     <PostForm
-      categories={availableCategories}
+      categories={hierarchicalCategoryOptions(availableCategories)}
       action={updatePost}
       mode="edit"
       updated={query.updated === "1"}

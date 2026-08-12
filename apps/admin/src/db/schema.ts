@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, index, inet, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, check, index, inet, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
@@ -79,11 +79,15 @@ export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull(),
+  parentId: uuid("parent_id").references((): AnyPgColumn => categories.id, { onDelete: "restrict" }),
+  description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("categories_name_normalized_uidx").on(sql`lower(${table.name})`),
   uniqueIndex("categories_slug_uidx").on(table.slug),
+  index("categories_parent_idx").on(table.parentId),
+  check("categories_not_self_parent_chk", sql`${table.parentId} IS NULL OR ${table.parentId} <> ${table.id}`),
 ]);
 
 export const posts = pgTable("posts", {
@@ -122,7 +126,11 @@ export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({
 }));
 export const rolesRelations = relations(roles, ({ many }) => ({ staff: many(staffRoles), permissions: many(rolePermissions) }));
 export const permissionsRelations = relations(permissions, ({ many }) => ({ roles: many(rolePermissions) }));
-export const categoriesRelations = relations(categories, ({ many }) => ({ posts: many(posts) }));
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, { fields: [categories.parentId], references: [categories.id], relationName: "categoryHierarchy" }),
+  children: many(categories, { relationName: "categoryHierarchy" }),
+  posts: many(posts),
+}));
 export const postsRelations = relations(posts, ({ one }) => ({
   category: one(categories, { fields: [posts.categoryId], references: [categories.id] }),
   createdBy: one(staffAccounts, { fields: [posts.createdById], references: [staffAccounts.id], relationName: "postCreator" }),

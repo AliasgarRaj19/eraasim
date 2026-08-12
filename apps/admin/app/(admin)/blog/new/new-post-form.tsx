@@ -38,12 +38,14 @@ function FieldError({ messages }: { messages?: string[] }) {
   return messages?.length ? <p className="field-error" role="alert">{messages[0]}</p> : null;
 }
 
-export function NewPostForm({ categories }: { categories: { id: string; name: string }[] }) {
+type PostCategoryOption = { id: string; name: string; label: string; parentId: string | null };
+
+export function NewPostForm({ categories }: { categories: PostCategoryOption[] }) {
   return <PostForm categories={categories} action={createPost} initialValues={emptyValues} mode="create" />;
 }
 
 export function PostForm({ categories, action: submitAction, initialValues, mode, hiddenFields, updated }: {
-  categories: { id: string; name: string }[];
+  categories: PostCategoryOption[];
   action: (state: CreatePostState, formData: FormData) => Promise<CreatePostState>;
   initialValues: PostFormValues;
   mode: "create" | "edit";
@@ -158,7 +160,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
               {categories.length === 0 ? <input type="hidden" name="categoryId" value="" /> : null}
               <select name={categories.length ? "categoryId" : undefined} defaultValue={initialValues.categoryId} disabled={pending || categories.length === 0}>
                 <option value="">No category</option>
-                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}
               </select>
               <FieldError messages={fieldError("categoryId")} />
             </label>
