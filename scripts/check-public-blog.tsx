@@ -5,9 +5,17 @@ import { TiptapContent, tiptapRenderSecurity } from "../components/tiptap-conten
 import { PostCard } from "../components/post-card";
 import { PUBLIC_MEDIA_PATTERN, publicMediaUrl } from "../src/media";
 import { PUBLIC_POST_SQL } from "../src/public-blog";
+import { getPool } from "../src/db";
 
 assert.equal(PUBLIC_POST_SQL, "p.status = 'published' AND p.deleted_at IS NULL");
+const originalDatabaseUrl = process.env.DATABASE_URL;
+delete process.env.DATABASE_URL;
+assert.throws(() => getPool(), /DATABASE_URL is required for public database operations/, "environment validation must be deferred until an actual database operation");
+if (originalDatabaseUrl) process.env.DATABASE_URL = originalDatabaseUrl;
 const dataSource = readFileSync(new URL("../src/public-blog.ts", import.meta.url), "utf8");
+const dbSource = readFileSync(new URL("../src/db.ts", import.meta.url), "utf8");
+assert(dbSource.includes("export function getPool()") && !dbSource.includes("export const pool"), "the pool must be lazy rather than module-initialized");
+assert(dataSource.includes("const pool = getPool()"), "query helpers must request the pool lazily");
 assert(dataSource.includes(`WHERE p.slug = $1 AND \${PUBLIC_POST_SQL}`), "slug lookup must use the public predicate in SQL");
 assert(!dataSource.includes("scheduled_for <="), "elapsed schedules must not be treated as published");
 for (const forbidden of ["draft", "scheduled", "unpublished"]) assert.notEqual(forbidden, "published");

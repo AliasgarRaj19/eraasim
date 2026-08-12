@@ -1,8 +1,12 @@
 import { Pool } from "pg";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) throw new Error("DATABASE_URL is required");
-
 const globalForDb = globalThis as unknown as { eraasimPublicPool?: Pool };
-export const pool = globalForDb.eraasimPublicPool ?? new Pool({ connectionString, max: 10 });
-if (process.env.NODE_ENV !== "production") globalForDb.eraasimPublicPool = pool;
+
+export function getPool() {
+  if (globalForDb.eraasimPublicPool) return globalForDb.eraasimPublicPool;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error("DATABASE_URL is required for public database operations");
+  const pool = new Pool({ connectionString, max: 10 });
+  globalForDb.eraasimPublicPool = pool;
+  return pool;
+}

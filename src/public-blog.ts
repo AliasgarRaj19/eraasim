@@ -1,4 +1,4 @@
-import { pool } from "@/src/db";
+import { getPool } from "@/src/db";
 
 export const PUBLIC_POST_SQL = "p.status = 'published' AND p.deleted_at IS NULL";
 export const PUBLIC_POSTS_PER_PAGE = 12;
@@ -20,6 +20,7 @@ export function parsePublicPage(value: string | undefined) {
 }
 
 export async function getPublicPosts(requestedPage: number, categorySlug?: string) {
+  const pool = getPool();
   const categoryClause = categorySlug ? " AND c.slug = $1" : "";
   const params = categorySlug ? [categorySlug] : [];
   const countResult = await pool.query<{ total: number }>(`SELECT count(*)::int AS total FROM posts p ${cardJoins} WHERE ${PUBLIC_POST_SQL}${categoryClause}`, params);
@@ -31,16 +32,19 @@ export async function getPublicPosts(requestedPage: number, categorySlug?: strin
 }
 
 export async function getLatestPosts(limit = 6) {
+  const pool = getPool();
   const result = await pool.query<PublicPostCard>(`SELECT ${cardColumns} FROM posts p ${cardJoins} WHERE ${PUBLIC_POST_SQL} ORDER BY p.published_at DESC, p.id DESC LIMIT $1`, [limit]);
   return result.rows;
 }
 
 export async function getPublicArticle(slug: string) {
+  const pool = getPool();
   const result = await pool.query<PublicArticle>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`, [slug]);
   return result.rows[0] ?? null;
 }
 
 export async function getPublicCategories() {
+  const pool = getPool();
   const result = await pool.query<{ name: string; slug: string; parentId: string | null }>(`SELECT DISTINCT c.name, c.slug, c.parent_id AS "parentId" FROM categories c INNER JOIN posts p ON p.category_id = c.id WHERE ${PUBLIC_POST_SQL} ORDER BY c.name`);
   return result.rows;
 }
