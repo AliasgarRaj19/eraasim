@@ -52,6 +52,14 @@ const adminShell = readFileSync(new URL("../apps/admin/app/(admin)/admin-shell.t
 const publicShell = readFileSync(new URL("../components/public-shell.tsx", import.meta.url), "utf8");
 assert(adminShell.includes("Designed by Aliasgar Raj"));
 assert(publicShell.includes("Designed by Aliasgar Raj"));
+assert(publicShell.includes('href="/"') && publicShell.includes('href="/blog"') && publicShell.includes('href="/#categories"'), "header/footer navigation must remain ready for category and future page discovery");
+const homepageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+assert(homepageSource.includes("getLatestPosts(6)"), "homepage must retain exactly six latest posts");
+assert(homepageSource.includes("category.parentId === null") && homepageSource.includes("child.parentId === parent.id"), "homepage category discovery must preserve Parent/Child hierarchy");
+const categoryPageSource = readFileSync(new URL("../app/categories/[slug]/page.tsx", import.meta.url), "utf8");
+assert(categoryPageSource.includes("category.description") && categoryPageSource.includes("category.parentName"), "category page must render real description and hierarchy context");
+const cssSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+assert(cssSource.includes("--width-reading") && cssSource.includes("@media (max-width: 640px)") && cssSource.includes("prefers-reduced-motion"));
 const compose = readFileSync(new URL("../compose.yaml", import.meta.url), "utf8");
 assert(compose.includes("eraasim-uploads:/app/storage/uploads:ro"));
 

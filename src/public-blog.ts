@@ -45,6 +45,6 @@ export async function getPublicArticle(slug: string) {
 
 export async function getPublicCategories() {
   const pool = getPool();
-  const result = await pool.query<{ name: string; slug: string; parentId: string | null }>(`SELECT DISTINCT c.name, c.slug, c.parent_id AS "parentId" FROM categories c INNER JOIN posts p ON p.category_id = c.id WHERE ${PUBLIC_POST_SQL} ORDER BY c.name`);
+  const result = await pool.query<{ id: string; name: string; slug: string; description: string | null; parentId: string | null; parentName: string | null }>(`SELECT c.id, c.name, c.slug, c.description, c.parent_id AS "parentId", parent.name AS "parentName" FROM categories c LEFT JOIN categories parent ON parent.id = c.parent_id ORDER BY parent.name NULLS FIRST, c.name`);
   return result.rows;
 }
