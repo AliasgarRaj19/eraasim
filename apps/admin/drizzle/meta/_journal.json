@@ -22,6 +22,13 @@
       "when": 1786494587753,
       "tag": "0002_category_hierarchy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786548442186,
+      "tag": "0003_home_page_cms",
+      "breakpoints": true
     }
   ]
 }

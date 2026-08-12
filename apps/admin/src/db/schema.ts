@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { type AnyPgColumn, boolean, check, index, inet, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, check, index, inet, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
@@ -74,6 +74,17 @@ export const activityLogs = pgTable("activity_logs", {
   ipAddress: inet("ip_address"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("activity_logs_staff_created_idx").on(table.staffAccountId, table.createdAt)]);
+
+export const homePageConfigurations = pgTable("home_page_configurations", {
+  id: text("id").primaryKey(),
+  draft: jsonb("draft").$type<Record<string, unknown>>().notNull(),
+  published: jsonb("published").$type<Record<string, unknown>>(),
+  draftVersion: integer("draft_version").notNull().default(1),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  publishedById: uuid("published_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
