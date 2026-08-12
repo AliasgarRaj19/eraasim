@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { defaultHomeConfig, homeConfigSchema, normalizeHomeConfig, promoteDraft } from "../src/home-page/config";
+const a = "123e4567-e89b-42d3-a456-426614174000", b = "123e4567-e89b-42d3-a456-426614174001";
+assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, featuredStory: { visible: true, sourceMode: "latest", selectedPostId: null } }).success);
+assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, featuredStory: { visible: true, sourceMode: "manual", selectedPostId: a } }).success);
+assert(!homeConfigSchema.safeParse({ ...defaultHomeConfig, featuredStory: { visible: true, sourceMode: "manual", selectedPostId: null } }).success);
+for (const ids of [[a], [a, b]]) assert(homeConfigSchema.safeParse({ ...defaultHomeConfig, latestStories: { ...defaultHomeConfig.latestStories, selectionMode: "manual", manualPostIds: ids } }).success);
+assert(!homeConfigSchema.safeParse({ ...defaultHomeConfig, latestStories: { ...defaultHomeConfig.latestStories, selectionMode: "manual", manualPostIds: [] } }).success);
+assert(!homeConfigSchema.safeParse({ ...defaultHomeConfig, latestStories: { ...defaultHomeConfig.latestStories, selectionMode: "manual", manualPostIds: [a, a] } }).success);
+const old = { ...defaultHomeConfig, featuredStory: undefined, latestStories: { visible: true, heading: "Latest stories", description: "Old", postCount: 6 }, categoryDiscovery: { visible: true }, sectionOrder: ["hero", "latestStories", "categoryDiscovery"] };
+const normalized = homeConfigSchema.parse(normalizeHomeConfig(old)); assert.deepEqual(normalized.sectionOrder, ["hero", "featuredStory", "latestStories"]); assert.equal(normalized.latestStories.rotationSeconds, 18);
+const draft = { ...defaultHomeConfig, featuredStory: { visible: false, sourceMode: "manual" as const, selectedPostId: a } }; assert.deepEqual(promoteDraft(draft, defaultHomeConfig, false), defaultHomeConfig); assert.deepEqual(promoteDraft(draft, defaultHomeConfig, true), draft);
+const page = readFileSync(new URL("../app/(admin)/pages/home/page.tsx", import.meta.url), "utf8"); assert(page.includes('eq(posts.status, "published")') && page.includes("isNull(posts.deletedAt)") && page.includes("categories.parentId"));
+const action = readFileSync(new URL("../app/(admin)/pages/home/actions.ts", import.meta.url), "utf8"); assert(action.includes("requestedPostIds") && action.includes('eq(posts.status, "published")') && action.includes("isNull(posts.deletedAt)") && action.includes("invalid-post-selection"));
+const form = readFileSync(new URL("../components/home-page-form.tsx", import.meta.url), "utf8"); assert(form.includes("Filter by title or category") && form.includes("Story {index + 1}") && !form.includes("Category Discovery"));
+console.log("PASS: Featured latest/manual, manual 1-9 uniqueness, Parent/Child selector architecture, old JSON normalization, eligibility validation, and Draft/Publish isolation verified.");

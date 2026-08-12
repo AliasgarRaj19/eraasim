@@ -1,10 +1,10 @@
 "use server";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/src/auth/authorization";
 import { db } from "@/src/db";
-import { activityLogs, homePageConfigurations } from "@/src/db/schema";
+import { activityLogs, homePageConfigurations, posts } from "@/src/db/schema";
 import { defaultHomeConfig, parseHomeForm } from "@/src/home-page/config";
 export type HomeFormState = { error?: string; fieldErrors?: Record<string, string[]> };
 const identity = z.object({ expectedVersion: z.coerce.number().int().min(0), intent: z.enum(["draft", "publish"]) });
@@ -16,6 +16,11 @@ export async function saveHomePage(_state: HomeFormState, formData: FormData): P
   const config = parseHomeForm(formData);
   if (!config.success) return { error: "Review the Home Page fields.", fieldErrors: config.error.flatten().fieldErrors as Record<string, string[]> };
   const result = await db.transaction(async (tx) => {
+    const requestedPostIds = [...new Set([config.data.featuredStory.selectedPostId, ...config.data.latestStories.manualPostIds].filter((id): id is string => Boolean(id)))];
+    if (requestedPostIds.length) {
+      const eligible = await tx.select({ id: posts.id }).from(posts).where(and(inArray(posts.id, requestedPostIds), eq(posts.status, "published"), isNull(posts.deletedAt)));
+      if (eligible.length !== requestedPostIds.length) return "invalid-post-selection";
+    }
     const [current] = await tx.select().from(homePageConfigurations).where(eq(homePageConfigurations.id, "home")).limit(1).for("update");
     const currentVersion = current?.draftVersion ?? 0;
     if (currentVersion !== id.data.expectedVersion) return "stale";
@@ -25,5 +30,6 @@ export async function saveHomePage(_state: HomeFormState, formData: FormData): P
     await tx.insert(activityLogs).values({ staffAccountId: session.user.id, action: id.data.intent === "publish" ? "page.home.published" : "page.home.draft_saved", entityType: "page", entityId: "home", description: id.data.intent === "publish" ? "Home Page changes published." : "Home Page draft saved.", metadata: { page: "home", draftVersion: nextVersion, publishedAt: id.data.intent === "publish" ? now.toISOString() : undefined } });
     return id.data.intent;
   });
+  if (result === "invalid-post-selection") return { error: "One or more selected stories are no longer published and available." };
   redirect(`/pages/home?result=${result}`);
 }

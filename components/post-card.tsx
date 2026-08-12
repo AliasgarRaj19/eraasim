@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { PublicPostCard } from "@/src/public-blog";
-import { publicMediaUrl } from "@/src/media";
+import { publicMediaUrl } from "@/src/media-url";
 
 const formatter = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: "Asia/Kolkata" });
 export function PostCard({ post }: { post: PublicPostCard }) {

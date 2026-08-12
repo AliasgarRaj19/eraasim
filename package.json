@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:public-blog": "tsx scripts/check-public-blog.tsx"
+    ,"check:home-stories": "tsx scripts/check-home-stories.tsx"
   },
   "dependencies": {
     "next": "16.3.0",

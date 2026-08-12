@@ -29,6 +29,13 @@
       "when": 1786548442186,
       "tag": "0003_home_page_cms",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786576890662,
+      "tag": "0004_perpetual_agent_brand",
+      "breakpoints": true
     }
   ]
 }

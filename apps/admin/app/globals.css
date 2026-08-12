@@ -221,3 +221,6 @@ a { color: inherit; }
   .pagination { align-items: stretch; flex-direction: column; }
   .pagination div { justify-content: space-between; }
 }
+.manual-story-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.post-selector { display: grid; gap: .45rem; }
+@media (max-width: 650px) { .manual-story-slots { grid-template-columns: 1fr; } }

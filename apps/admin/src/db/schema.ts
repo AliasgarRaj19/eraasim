@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { type AnyPgColumn, boolean, check, index, inet, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, check, date, index, inet, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
@@ -128,6 +128,16 @@ export const posts = pgTable("posts", {
   index("posts_deleted_at_idx").on(table.deletedAt),
 ]);
 
+export const postDailyViews = pgTable("post_daily_views", {
+  postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  viewDate: date("view_date", { mode: "string" }).notNull(),
+  viewCount: integer("view_count").notNull().default(0),
+}, (table) => [
+  primaryKey({ columns: [table.postId, table.viewDate] }),
+  index("post_daily_views_date_count_idx").on(table.viewDate, table.viewCount),
+  check("post_daily_views_nonnegative_chk", sql`${table.viewCount} >= 0`),
+]);
+
 export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({
   roles: many(staffRoles),
   invitations: many(staffInvitations),
@@ -142,8 +152,10 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
   children: many(categories, { relationName: "categoryHierarchy" }),
   posts: many(posts),
 }));
-export const postsRelations = relations(posts, ({ one }) => ({
+export const postsRelations = relations(posts, ({ one, many }) => ({
   category: one(categories, { fields: [posts.categoryId], references: [categories.id] }),
   createdBy: one(staffAccounts, { fields: [posts.createdById], references: [staffAccounts.id], relationName: "postCreator" }),
   updatedBy: one(staffAccounts, { fields: [posts.updatedById], references: [staffAccounts.id], relationName: "postUpdater" }),
+  dailyViews: many(postDailyViews),
 }));
+export const postDailyViewsRelations = relations(postDailyViews, ({ one }) => ({ post: one(posts, { fields: [postDailyViews.postId], references: [posts.id] }) }));

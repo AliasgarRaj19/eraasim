@@ -50,7 +50,7 @@ assert.equal(tiptapRenderSecurity.safeLink("javascript:alert(1)"), null);
 assert.equal(tiptapRenderSecurity.youtubeId("https://evil.example/embed/dQw4w9WgXcQ"), null);
 
 for (const [categoryName, categorySlug] of [["Food", "food"], ["Street Food", "street-food"]]) {
-  const card = renderToStaticMarkup(<PostCard post={{ slug: "story", title: "Story", shortDescription: "Summary", featuredImagePath: null, categoryName, categorySlug, publishedAt: new Date("2026-08-01T00:00:00Z"), authorName: "Author" }} />);
+  const card = renderToStaticMarkup(<PostCard post={{ id: uuid, slug: "story", title: "Story", shortDescription: "Summary", featuredImagePath: null, categoryName, categorySlug, publishedAt: new Date("2026-08-01T00:00:00Z"), authorName: "Author" }} />);
   assert(card.includes(`href="/categories/${categorySlug}"`) && card.includes(categoryName), "the exact assigned Parent or Child category must render");
 }
 
@@ -63,11 +63,11 @@ assert(adminShell.includes("Designed by Aliasgar Raj"));
 assert(publicShell.includes("Designed by Aliasgar Raj"));
 assert(publicShell.includes('href="/"') && publicShell.includes('href="/blog"') && publicShell.includes('href="/#categories"'), "header/footer navigation must remain ready for category and future page discovery");
 const homepageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
-assert(homepageSource.includes("getLatestPosts(config.latestStories.postCount)"), "homepage post count must come from the resolved configuration");
-assert(homepageSource.includes("category.parentId === null") && homepageSource.includes("child.parentId === parent.id"), "homepage category discovery must preserve Parent/Child hierarchy");
+assert(homepageSource.includes("getHomeStoryPool(config.latestStories.selectionMode, config.latestStories.manualPostIds)"), "homepage story pool must come from the resolved configuration");
+assert(!homepageSource.includes("categoryDiscovery"), "retired Home Category Discovery must not render");
 const homeConfigSource = readFileSync(new URL("../src/home-page.ts", import.meta.url), "utf8");
 assert(homeConfigSource.includes("resolvePublishedHome") && homeConfigSource.includes("defaultHomeConfig"), "homepage must retain the approved fallback without CMS data");
-assert(homepageSource.includes("config.sectionOrder.map") && homepageSource.includes("config.hero.visible") && homepageSource.includes("config.latestStories.visible") && homepageSource.includes("config.categoryDiscovery.visible"));
+assert(homepageSource.includes("config.sectionOrder.map") && homepageSource.includes("config.hero.visible") && homepageSource.includes("config.featuredStory.visible") && homepageSource.includes("config.latestStories.visible"));
 assert(homepageSource.includes('config.seoTitle || "Eraasim"') && homepageSource.includes('config.seoDescription || "Stories of culture, food and places."'), "Home SEO must retain safe defaults");
 const categoryPageSource = readFileSync(new URL("../app/categories/[slug]/page.tsx", import.meta.url), "utf8");
 assert(categoryPageSource.includes("category.description") && categoryPageSource.includes("category.parentName"), "category page must render real description and hierarchy context");

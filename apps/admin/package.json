@@ -20,6 +20,8 @@
     "check:home-upload": "tsx scripts/check-home-upload.ts",
     "check:upload-storage": "tsx scripts/check-upload-storage.ts",
     "check:background-visibility": "tsx scripts/check-background-visibility.ts",
+    "check:home-stories": "tsx scripts/check-home-stories.ts",
+    "check:view-tracking": "tsx scripts/check-view-tracking.ts",
     "check:editor-selection": "tsx scripts/check-editor-selection.ts",
     "check:new-post-submission": "tsx scripts/check-new-post-submission.ts",
     "check:post-deletion": "tsx scripts/check-post-deletion.ts",
