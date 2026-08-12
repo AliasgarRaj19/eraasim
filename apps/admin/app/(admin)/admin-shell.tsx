@@ -90,6 +90,7 @@ export function AdminShell({ account, navigation, children }: AdminShellProps) {
             <small>{account.isMasterAdmin ? "Master Admin" : "Staff"}</small>
           </div>
           <form action={logout}><button className="logout-button" type="submit">Logout</button></form>
+          <small className="admin-designer-credit">Designed by Aliasgar Raj</small>
         </div>
       </aside>
 

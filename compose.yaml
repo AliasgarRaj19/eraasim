@@ -6,8 +6,16 @@ services:
     image: eraasim-web:local
     container_name: eraasim-web
     restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      UPLOAD_ROOT: /app/storage/uploads
+    depends_on:
+      eraasim-postgres:
+        condition: service_healthy
     ports:
       - "127.0.0.1:5200:3000"
+    volumes:
+      - eraasim-uploads:/app/storage/uploads:ro
     networks:
       - eraasim
 

@@ -65,6 +65,7 @@ a { color: inherit; }
 .sidebar-account form { grid-column: 1 / -1; }
 .logout-button { width: 100%; min-height: 2.3rem; border: 1px solid rgb(255 255 255 / 16%); background: transparent; color: #edf2ee; font-size: .8rem; }
 .logout-button:hover { background: rgb(255 255 255 / 7%); }
+.admin-designer-credit { grid-column: 1 / -1; color: #94a49a; font-size: .66rem; text-align: center; }
 .admin-content { min-height: 100vh; margin-left: 17rem; padding: clamp(2rem, 5vw, 4.5rem); }
 .page-panel { width: min(100%, 62rem); padding: clamp(1.5rem, 4vw, 2.75rem); border: 1px solid #dfe2dc; border-radius: .9rem; background: white; box-shadow: 0 .75rem 2.5rem rgb(31 43 35 / 5%); }
 .page-panel h1 { font-size: clamp(2rem, 4vw, 3rem); }
