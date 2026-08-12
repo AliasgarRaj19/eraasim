@@ -24,7 +24,7 @@ a { color: inherit; }
 main { min-height: 70vh; }
 .hero { position: relative; display: grid; min-height: min(44rem, calc(100vh - 5.5rem)); grid-template-columns: minmax(0, 1.2fr) minmax(15rem, .8fr); align-items: center; gap: clamp(2rem, 8vw, 8rem); padding: clamp(3rem, 8vw, 7rem) max(1.25rem, calc((100vw - var(--width-site)) / 2)); border-bottom: 1px solid var(--color-line); background: var(--color-tint); isolation: isolate; }
 .hero-with-background::before { position: absolute; z-index: -2; inset: 0; background: var(--hero-background-image) center / cover no-repeat; content: ""; opacity: var(--hero-background-opacity); }
-.hero-with-background::after { position: absolute; z-index: -1; inset: 0; background: rgb(247 243 235 / 82%); content: ""; }
+.hero-with-background::after { position: absolute; z-index: -1; inset: 0; background: rgb(247 243 235); content: ""; opacity: var(--hero-overlay-opacity); }
 .hero-copy { max-width: 49rem; }
 .hero h1, .page-hero h1, .article-header h1 { margin: .55rem 0 .9rem; font-family: var(--font-display); font-size: clamp(3rem, 7vw, 6.4rem); font-weight: 500; line-height: .98; letter-spacing: -.05em; text-wrap: balance; overflow-wrap: anywhere; }
 .hero h1 { font-size: clamp(calc(var(--hero-heading-size) * .5), 7vw, var(--hero-heading-size)); }

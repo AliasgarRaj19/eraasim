@@ -27,7 +27,8 @@ function HeroImageControl({ kind, label, initialPath, initialVisible, initialOpa
   };
   return <fieldset className="hero-media-control"><legend>{label}</legend><input type="hidden" name={`${prefix}ImagePath`} value={path} />
     <label className="visibility-control"><input name={`${prefix === "heroBackground" ? "heroShowBackgroundImage" : "heroShowProfileImage"}`} type="checkbox" defaultChecked={initialVisible} disabled={disabled} /> Show on Website</label>
-    <NumberStepper name={`${prefix}ImageOpacity`} label="Opacity" initial={initialOpacity} bounds={{ min: 0, max: 100 }} disabled={disabled} />
+    <NumberStepper name={`${prefix}ImageOpacity`} label={kind === "Background" ? "Background Image Visibility" : "Opacity"} initial={initialOpacity} bounds={{ min: 0, max: kind === "Background" ? 200 : 100 }} disabled={disabled} />
+    {kind === "Background" ? <p className="field-note">100 keeps the standard Hero appearance. Increase above 100 to make the background image clearer.</p> : null}
     <p className="field-note hero-image-guidance">Accepted formats: JPEG, PNG, GIF, WebP<br />Maximum file size: 5 MB<br />Recommended dimensions: {guidance}</p>
     {path ? <Image className={kind === "Profile" ? "home-profile-preview" : "home-background-preview"} src={path} alt={`${label} preview`} width={kind === "Profile" ? 400 : 800} height={kind === "Profile" ? 400 : 450} unoptimized /> : <p className="field-note">No image selected. Nothing broken will be rendered publicly.</p>}
     <label className="upload-control">{path ? "Replace image" : "Upload image"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => void choose(event.target.files?.[0])} disabled={disabled || uploading} /></label>

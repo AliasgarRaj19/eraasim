@@ -17,7 +17,7 @@ const heroSchema = z.object({
   visible: z.boolean(),
   backgroundImagePath: uploadPath.default(""),
   showBackgroundImage: z.boolean().default(false),
-  backgroundImageOpacity: z.number().int().min(0).max(100).default(100),
+  backgroundImageOpacity: z.number().int().min(0).max(200).default(100),
   profileImagePath: uploadPath.default(""),
   showProfileImage: z.boolean().default(false),
   profileImageOpacity: z.number().int().min(0).max(100).default(100),

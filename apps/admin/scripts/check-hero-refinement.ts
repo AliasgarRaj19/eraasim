@@ -23,10 +23,10 @@ const draft = { ...published, hero: { ...published.hero, backgroundImagePath: ""
 assert.deepEqual(promoteDraft(draft, published, false), published);
 assert.deepEqual(promoteDraft(draft, published, true), draft);
 for (const flag of ["showEyebrow", "showHeading", "showDescription", "showCta"] as const) assert(hero({ [flag]: false }).success);
-for (const field of ["backgroundImageOpacity", "profileImageOpacity"] as const) {
-  for (const value of [0, 50, 100]) assert(hero({ [field]: value }).success);
-  for (const value of [-1, 101, 50.5, "50", "50%", "calc(1)", Number.NaN]) assert(!hero({ [field]: value }).success);
-}
+for (const value of [0, 50, 100, 150, 200]) assert(hero({ backgroundImageOpacity: value }).success);
+for (const value of [-1, 201, 50.5, "50", "50%", "calc(1)", Number.NaN]) assert(!hero({ backgroundImageOpacity: value }).success);
+for (const value of [0, 50, 100]) assert(hero({ profileImageOpacity: value }).success);
+for (const value of [-1, 101, 50.5, "50", "50%", "calc(1)", Number.NaN]) assert(!hero({ profileImageOpacity: value }).success);
 const visibilityDraft = { ...published, hero: { ...published.hero, showEyebrow: false, showHeading: true, showDescription: false, showCta: false } };
 assert.deepEqual(promoteDraft(visibilityDraft, published, false), published);
 assert.deepEqual(promoteDraft(visibilityDraft, published, true), visibilityDraft);
@@ -43,8 +43,8 @@ const publicPage = readFileSync(new URL("../../../app/page.tsx", import.meta.url
 assert(publicPage.includes("availablePublicMediaUrl") && publicPage.includes("config.hero.showBackgroundImage") && publicPage.includes("config.hero.showProfileImage") && publicPage.includes("config.useLegacyHeroMark"));
 for (const flag of ["showEyebrow", "showHeading", "showDescription", "showCta"]) assert(publicPage.includes(`config.hero.${flag}`));
 assert(publicPage.includes("--hero-eyebrow-size") && publicPage.includes("--hero-heading-size") && publicPage.includes("--hero-description-size"));
-assert(publicPage.includes("config.hero.backgroundImageOpacity / 100") && publicPage.includes("config.hero.profileImageOpacity / 100"));
+assert(publicPage.includes("resolveHeroBackgroundVisibility(config.hero.backgroundImageOpacity)") && publicPage.includes("config.hero.profileImageOpacity / 100"));
 const publicCss = readFileSync(new URL("../../../app/globals.css", import.meta.url), "utf8");
 assert(publicCss.includes("clamp(") && publicCss.includes("overflow-wrap: anywhere") && publicCss.includes("object-fit: cover"));
-assert(publicCss.includes("opacity: var(--hero-background-opacity)") && publicCss.includes("opacity: var(--hero-profile-opacity)"));
+assert(publicCss.includes("opacity: var(--hero-background-opacity)") && publicCss.includes("opacity: var(--hero-overlay-opacity)") && publicCss.includes("opacity: var(--hero-profile-opacity)"));
 console.log("PASS: Hero media visibility, Draft/Published isolation, numeric typography, CTA allowlist, SEO guidance, backward defaults, responsive styles, and upload authorization verified.");
