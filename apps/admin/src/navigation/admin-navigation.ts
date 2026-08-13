@@ -49,14 +49,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Header", href: "/header", permission: "header.view" },
   { label: "Logs", href: "/logs", permission: "logs.view" },
   { label: "Sitemap", href: "/sitemap", permission: "sitemap.view" },
-  {
-    label: "Footer",
-    permission: "footer.view",
-    children: [
-      { label: "Content & Directory", href: "/footer/content", permission: "footer.view" },
-      { label: "Social Media Links", href: "/footer/social", permission: "footer.view" },
-    ],
-  },
+  { label: "Footer", href: "/footer/content", permission: "footer.view" },
 ];
 
 export function findNavigationItem(href: string) {

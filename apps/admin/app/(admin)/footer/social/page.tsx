@@ -1,1 +1,1 @@
-import{redirect}from"next/navigation";import{requireRouteAccess}from"@/src/auth/authorization";export default async function SocialPage(){await requireRouteAccess("/footer/social");redirect("/footer/content#social-links")}
+import{redirect}from"next/navigation";import{requirePermission}from"@/src/auth/authorization";export default async function SocialPage(){await requirePermission("footer.view");redirect("/footer/content#social-links")}

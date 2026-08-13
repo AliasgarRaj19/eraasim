@@ -58,7 +58,6 @@ const articleSource = readFileSync(new URL("../app/blog/[slug]/page.tsx", import
 assert(articleSource.includes("if (!post) notFound()"));
 assert(articleSource.includes("post.seoTitle || post.title") && articleSource.includes("post.seoDescription || post.shortDescription"));
 const adminShell = readFileSync(new URL("../apps/admin/app/(admin)/admin-shell.tsx", import.meta.url), "utf8");
-const publicShell = readFileSync(new URL("../components/public-shell.tsx", import.meta.url), "utf8");
 const publicFooter = readFileSync(new URL("../components/footer-content.tsx", import.meta.url), "utf8");
 assert(adminShell.includes("Designed by Aliasgar Raj"));
 assert(publicFooter.includes("Designed by Aliasgar Raj"));
