@@ -14,6 +14,7 @@
     "check:edit-post": "tsx scripts/check-edit-post.ts",
     "check:categories": "tsx scripts/check-categories.ts",
     "check:editor-controls": "tsx scripts/check-editor-controls.ts",
+    "check:pasted-colors": "tsx scripts/check-pasted-colors.ts",
     "check:image-serialization": "tsx scripts/check-image-serialization.ts",
     "check:home-cms": "tsx scripts/check-home-cms.ts",
     "check:hero-refinement": "tsx scripts/check-hero-refinement.ts",

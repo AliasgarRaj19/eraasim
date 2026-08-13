@@ -18,8 +18,10 @@ assert.equal(((legacy.content as Record<string, unknown>[])[0].attrs as Record<s
 const withoutWidth = parseAndNormalizeContent(JSON.stringify({ type: "doc", content: [{ type: "image", attrs: { src: imageSrc } }] }));
 assert.equal(((withoutWidth.content as Record<string, unknown>[])[0].attrs as Record<string, unknown>).width, 100);
 
+const stripped = parseAndNormalizeContent(JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Unsafe", marks: [{ type: "bold" }, { type: "textStyle", attrs: { color: "expression(alert(1))" } }] }] }] }));
+assert.deepEqual(stripped, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Unsafe", marks: [{ type: "bold" }] }] }] });
+
 for (const unsafe of [
-  { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Unsafe", marks: [{ type: "textStyle", attrs: { color: "expression(alert(1))" } }] }] }] },
   { type: "doc", content: [{ type: "image", attrs: { src: imageSrc, width: 9 } }] },
   { type: "doc", content: [{ type: "image", attrs: { src: imageSrc, width: 101 } }] },
   { type: "doc", content: [{ type: "image", attrs: { src: imageSrc, width: "58%" } }] },

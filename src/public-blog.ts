@@ -5,7 +5,7 @@ export const PUBLIC_POSTS_PER_PAGE = 12;
 
 export type PublicPostCard = {
   id: string; slug: string; title: string; shortDescription: string; featuredImagePath: string | null;
-  categoryName: string | null; categorySlug: string | null; publishedAt: Date; authorName: string;
+  categoryName: string | null; categorySlug: string | null; publishedAt: Date; authorName: string; content?: Record<string, unknown>;
 };
 
 export type PublicArticle = PublicPostCard & { content: Record<string, unknown>; seoTitle: string | null; seoDescription: string | null };
@@ -48,10 +48,10 @@ export async function getHomeStoryPool(mode: "automatic" | "manual", manualPostI
   const pool = getPool();
   if (mode === "manual") {
     if (!manualPostIds.length) return [];
-    const result = await pool.query<PublicPostCard>(`SELECT ${cardColumns} FROM posts p ${cardJoins} WHERE ${PUBLIC_POST_SQL} AND p.id = ANY($1::uuid[]) ORDER BY array_position($1::uuid[], p.id) LIMIT 9`, [manualPostIds]);
+    const result = await pool.query<PublicPostCard>(`SELECT ${cardColumns}, p.content FROM posts p ${cardJoins} WHERE ${PUBLIC_POST_SQL} AND p.id = ANY($1::uuid[]) ORDER BY array_position($1::uuid[], p.id) LIMIT 9`, [manualPostIds]);
     return result.rows;
   }
-  const result = await pool.query<PublicPostCard>(`WITH latest AS (SELECT p.id, row_number() OVER (ORDER BY p.published_at DESC, p.id DESC) AS position FROM posts p WHERE ${PUBLIC_POST_SQL} ORDER BY p.published_at DESC, p.id DESC LIMIT 5), trending AS (SELECT p.id, p.published_at, COALESCE(sum(v.view_count), 0)::bigint AS views FROM posts p LEFT JOIN post_daily_views v ON v.post_id = p.id AND v.view_date >= (CURRENT_DATE - 29) WHERE ${PUBLIC_POST_SQL} AND p.id NOT IN (SELECT id FROM latest) GROUP BY p.id, p.published_at HAVING COALESCE(sum(v.view_count), 0) > 0 ORDER BY views DESC, p.published_at DESC, p.id DESC LIMIT 4), chosen AS (SELECT id, position::bigint AS position FROM latest UNION ALL SELECT id, 5 + row_number() OVER (ORDER BY views DESC, published_at DESC, id DESC) FROM trending), fill AS (SELECT p.id, 100 + row_number() OVER (ORDER BY p.published_at DESC, p.id DESC) AS position FROM posts p WHERE ${PUBLIC_POST_SQL} AND p.id NOT IN (SELECT id FROM chosen) ORDER BY p.published_at DESC, p.id DESC LIMIT 9) SELECT ${cardColumns} FROM (SELECT * FROM chosen UNION ALL SELECT * FROM fill) pool_ids INNER JOIN posts p ON p.id = pool_ids.id ${cardJoins} WHERE ${PUBLIC_POST_SQL} ORDER BY pool_ids.position LIMIT 9`);
+  const result = await pool.query<PublicPostCard>(`WITH latest AS (SELECT p.id, row_number() OVER (ORDER BY p.published_at DESC, p.id DESC) AS position FROM posts p WHERE ${PUBLIC_POST_SQL} ORDER BY p.published_at DESC, p.id DESC LIMIT 5), trending AS (SELECT p.id, p.published_at, COALESCE(sum(v.view_count), 0)::bigint AS views FROM posts p LEFT JOIN post_daily_views v ON v.post_id = p.id AND v.view_date >= (CURRENT_DATE - 29) WHERE ${PUBLIC_POST_SQL} AND p.id NOT IN (SELECT id FROM latest) GROUP BY p.id, p.published_at HAVING COALESCE(sum(v.view_count), 0) > 0 ORDER BY views DESC, p.published_at DESC, p.id DESC LIMIT 4), chosen AS (SELECT id, position::bigint AS position FROM latest UNION ALL SELECT id, 5 + row_number() OVER (ORDER BY views DESC, published_at DESC, id DESC) FROM trending), fill AS (SELECT p.id, 100 + row_number() OVER (ORDER BY p.published_at DESC, p.id DESC) AS position FROM posts p WHERE ${PUBLIC_POST_SQL} AND p.id NOT IN (SELECT id FROM chosen) ORDER BY p.published_at DESC, p.id DESC LIMIT 9) SELECT ${cardColumns}, p.content FROM (SELECT * FROM chosen UNION ALL SELECT * FROM fill) pool_ids INNER JOIN posts p ON p.id = pool_ids.id ${cardJoins} WHERE ${PUBLIC_POST_SQL} ORDER BY pool_ids.position LIMIT 9`);
   return result.rows;
 }
 

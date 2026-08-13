@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { renderToStaticMarkup } from "react-dom/server";
 import { firstYouTubeId, structuredExcerpt } from "../src/featured-story";
+import { PostCard } from "../components/post-card";
 const content = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Safe structured excerpt" }] }, { type: "youtube", attrs: { src: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" } }] };
 assert.equal(structuredExcerpt(content), "Safe structured excerpt"); assert.equal(firstYouTubeId(content), "dQw4w9WgXcQ"); assert.equal(firstYouTubeId({ type: "doc", content: [{ type: "youtube", attrs: { src: "javascript:bad" } }] }), null);
 const source = readFileSync(new URL("../src/public-blog.ts", import.meta.url), "utf8"); assert(source.includes("getFeaturedStory") && source.includes("getHomeStoryPool") && source.includes("PUBLIC_POST_SQL")); assert(source.includes("LIMIT 5") && source.includes("LIMIT 4") && source.includes("LIMIT 9") && source.includes("array_position"));
@@ -8,4 +10,12 @@ assert(source.includes("ON CONFLICT (post_id, view_date) DO UPDATE SET view_coun
 const article = readFileSync(new URL("../app/blog/[slug]/page.tsx", import.meta.url), "utf8"); assert(article.includes("if (!post) notFound()") && article.includes("incrementPublicArticleView(post.id)") && article.includes("bot|crawler|spider"));
 const home = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8"); assert(home.includes("firstYouTubeId") && home.includes("featuredImage") && home.includes("image-fallback") && home.includes("Continue Reading")); assert(!home.includes("categoryDiscovery"));
 const carousel = readFileSync(new URL("../components/story-carousel.tsx", import.meta.url), "utf8"); assert(carousel.includes("slice(index * 3, index * 3 + 3)") && carousel.includes("prefers-reduced-motion") && carousel.includes("onMouseEnter") && carousel.includes("onFocusCapture") && carousel.includes("<noscript>"));
-console.log("PASS: safe excerpt/YouTube, Featured fallbacks, public eligibility architecture, 5+4/maximum-9 selection, manual ordering, Category retirement, and accessible three-story rotation verified.");
+const card = { id: "1", slug: "story", title: "Story", shortDescription: "Summary", featuredImagePath: "/api/uploads/123e4567-e89b-42d3-a456-426614174000.png", categoryName: null, categorySlug: null, publishedAt: new Date("2026-01-01T00:00:00Z"), authorName: "Author" };
+const videoMarkup = renderToStaticMarkup(<PostCard post={{ ...card, content }} />);
+assert(videoMarkup.includes("youtube-nocookie.com/embed/dQw4w9WgXcQ") && !videoMarkup.includes("123e4567-e89b-42d3-a456-426614174000.png") && !videoMarkup.includes("autoplay"));
+const imageMarkup = renderToStaticMarkup(<PostCard post={{ ...card, content: { type: "doc", content: [{ type: "youtube", attrs: { src: "javascript:bad" } }] } }} />);
+assert(imageMarkup.includes("123e4567-e89b-42d3-a456-426614174000.png") && !imageMarkup.includes("iframe"));
+const fallbackMarkup = renderToStaticMarkup(<PostCard post={{ ...card, featuredImagePath: null, content: { type: "doc" } }} />);
+assert(fallbackMarkup.includes("image-fallback") && fallbackMarkup.includes("Eraasim"));
+assert(source.includes("${cardColumns}, p.content") && source.includes("array_position"));
+console.log("PASS: Latest, Trending, and manual cards load content; safe YouTube overrides image, invalid video falls back to image, empty media falls back editorially, and accessible three-story rotation is preserved without autoplay.");

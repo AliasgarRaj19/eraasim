@@ -12,6 +12,7 @@ import { TEXT_COLORS } from "@/src/blog/editor-controls";
 import { captureEditorSelection, restoreEditorSelection, type EditorSelectionSnapshot } from "@/src/blog/editor-selection";
 import { newImageAttributes } from "@/src/blog/image-attributes";
 import { canonicalYouTubeUrl } from "@/src/blog/youtube";
+import { normalizePastedHtml } from "@/src/blog/paste-normalization";
 
 const emptyContent = { type: "doc", content: [{ type: "paragraph" }] };
 export function RichTextEditor({ name, error, initialContent = emptyContent }: { name: string; error?: string; initialContent?: Record<string, unknown> }) {
@@ -36,7 +37,7 @@ export function RichTextEditor({ name, error, initialContent = emptyContent }: {
     onCreate: ({ editor: currentEditor }) => { selectionSnapshot.current = captureEditorSelection(currentEditor); },
     onSelectionUpdate: ({ editor: currentEditor }) => { selectionSnapshot.current = captureEditorSelection(currentEditor); },
     onUpdate: ({ editor: currentEditor }) => setValue(JSON.stringify(currentEditor.getJSON())),
-    editorProps: { attributes: { class: "editor-surface", "aria-label": "Long Description / Content" } },
+    editorProps: { attributes: { class: "editor-surface", "aria-label": "Long Description / Content" }, transformPastedHTML: normalizePastedHtml },
   });
 
   if (!editor) return <div className="editor-loading">Loading editor…</div>;

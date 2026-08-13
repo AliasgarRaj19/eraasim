@@ -18,7 +18,7 @@ function safeLink(value: unknown) {
   }
 }
 
-function normalizeMarks(value: unknown) {
+export function normalizeMarks(value: unknown) {
   if (!Array.isArray(value)) return undefined;
   return value.map((mark) => {
     if (!mark || typeof mark !== "object") throw new Error("Content contains an invalid text mark.");
@@ -27,9 +27,7 @@ function normalizeMarks(value: unknown) {
     if (textMarks.has(candidate.type)) return { type: candidate.type };
     if (candidate.type === "textStyle") {
       const color = (candidate.attrs as JsonObject | undefined)?.color;
-      if (typeof color !== "string" || !ALLOWED_TEXT_COLORS.has(color.toLowerCase())) {
-        throw new Error("Content contains an unsupported text color.");
-      }
+      if (typeof color !== "string" || !ALLOWED_TEXT_COLORS.has(color.toLowerCase())) return null;
       return { type: "textStyle", attrs: { color: color.toLowerCase() } };
     }
     if (candidate.type === "link") {
@@ -38,7 +36,7 @@ function normalizeMarks(value: unknown) {
       return { type: "link", attrs: { href, target: "_blank", rel: "noopener noreferrer nofollow" } };
     }
     throw new Error(`Content mark ${candidate.type} is not allowed.`);
-  });
+  }).filter((mark) => mark !== null);
 }
 
 function normalizeNode(value: unknown): JsonObject {
