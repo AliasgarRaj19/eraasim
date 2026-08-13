@@ -115,6 +115,7 @@ a { color: inherit; }
 .slug-input span { display: flex; align-items: center; padding: 0 .75rem; border: 1px solid var(--line); border-right: 0; border-radius: .5rem 0 0 .5rem; background: #f2f4f1; color: var(--muted); font-size: .83rem; font-weight: 600; }
 .slug-input input { border-radius: 0 .5rem .5rem 0; }
 .upload-control input { padding: .65rem; border: 1px dashed var(--line); background: #fafbf9; }
+.menu-editor-row { display: flex; align-items: center; gap: .75rem; }.menu-item-editor { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto auto; gap: .65rem; align-items: center; padding: .8rem; border: 1px solid var(--line); border-radius: .4rem; }
 .featured-preview { width: 100%; height: auto; max-height: 25rem; border-radius: .65rem; object-fit: cover; }
 .remove-image-button { justify-self: start; min-height: 2.25rem; border: 1px solid #dfbdb7; background: #fff7f5; color: #8b3428; font-size: .8rem; }
 .field-error, .form-error { margin: 0; color: var(--danger); font-size: .82rem; font-weight: 600; }

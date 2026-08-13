@@ -30,6 +30,7 @@
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
     ,"publish:scheduled": "tsx scripts/publish-scheduled-posts.ts"
     ,"check:scheduled-publishing": "tsx scripts/check-scheduled-publishing.ts"
+    ,"check:header-cms": "tsx scripts/check-header-cms.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",

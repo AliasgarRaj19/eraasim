@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "check:public-blog": "tsx scripts/check-public-blog.tsx"
     ,"check:home-stories": "tsx scripts/check-home-stories.tsx"
+    ,"check:public-header": "tsx scripts/check-public-header.tsx"
   },
   "dependencies": {
     "next": "16.3.0",

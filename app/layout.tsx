@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { PublicFooter, PublicHeader } from "@/components/public-shell";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Eraasim",
   description: "Stories of culture, food and places.",

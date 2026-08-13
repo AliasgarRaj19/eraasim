@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { HeaderNavigation } from "@/components/header-navigation";
+import { getPublicHeader } from "@/src/header";
 
-export function PublicHeader() {
-  return <header className="site-header"><Link className="site-brand" href="/" aria-label="Eraasim home"><span className="brand-initial" aria-hidden="true">E</span><span>Eraasim<small>Stories &amp; journeys</small></span></Link><nav aria-label="Primary"><Link href="/">Home</Link><Link href="/blog">Blog</Link><Link href="/#categories">Categories</Link></nav></header>;
+export async function PublicHeader() {
+  const header = await getPublicHeader(); return <HeaderNavigation {...header}/>;
 }
 
 export function PublicFooter() {

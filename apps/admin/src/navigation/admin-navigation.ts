@@ -46,6 +46,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     ],
   },
   { label: "Uploads", href: "/uploads", permission: "uploads.view" },
+  { label: "Header", href: "/header", permission: "header.view" },
   { label: "Logs", href: "/logs", permission: "logs.view" },
   { label: "Sitemap", href: "/sitemap", permission: "sitemap.view" },
   {
