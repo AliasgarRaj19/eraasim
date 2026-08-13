@@ -41,6 +41,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     permission: "pages.view",
     children: [
       { label: "Home Page", href: "/pages/home", permission: "pages.home.view" },
+      { label: "Blog Page", href: "/pages/blog", permission: "pages.blog.view" },
       { label: "Create Page", href: "/pages/new", permission: "pages.create" },
       { label: "Pages List", href: "/pages", permission: "pages.view" },
     ],
