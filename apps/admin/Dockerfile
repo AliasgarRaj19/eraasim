@@ -17,6 +17,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY . .
 
+FROM tools AS scheduled-publisher
+COPY deployment/scheduled-publisher.cron /etc/crontabs/root
+CMD ["crond", "-f", "-l", "2"]
+
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000

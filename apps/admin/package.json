@@ -28,6 +28,8 @@
     "check:post-deletion": "tsx scripts/check-post-deletion.ts",
     "check:post-category-assignment": "tsx scripts/check-post-category-assignment.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts"
+    ,"publish:scheduled": "tsx scripts/publish-scheduled-posts.ts"
+    ,"check:scheduled-publishing": "tsx scripts/check-scheduled-publishing.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",

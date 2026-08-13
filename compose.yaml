@@ -66,6 +66,22 @@ services:
     networks:
       - eraasim
 
+  eraasim-scheduled-publisher:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+      target: scheduled-publisher
+    image: eraasim-scheduled-publisher:local
+    container_name: eraasim-scheduled-publisher
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+    depends_on:
+      eraasim-postgres:
+        condition: service_healthy
+    networks:
+      - eraasim
+
   eraasim-postgres:
     image: postgres:18-alpine
     container_name: eraasim-postgres
