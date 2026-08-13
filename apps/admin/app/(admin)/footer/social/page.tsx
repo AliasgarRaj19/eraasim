@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
-export default function Page() { return <PlaceholderPage href="/footer/social" title="Social Media Links" />; }
+import{redirect}from"next/navigation";import{requireRouteAccess}from"@/src/auth/authorization";export default async function SocialPage(){await requireRouteAccess("/footer/social");redirect("/footer/content#social-links")}

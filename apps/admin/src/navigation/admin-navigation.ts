@@ -53,8 +53,8 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     label: "Footer",
     permission: "footer.view",
     children: [
-      { label: "Content", href: "/footer/content", permission: "footer.edit" },
-      { label: "Social Media Links", href: "/footer/social", permission: "footer.edit" },
+      { label: "Content & Directory", href: "/footer/content", permission: "footer.view" },
+      { label: "Social Media Links", href: "/footer/social", permission: "footer.view" },
     ],
   },
 ];
