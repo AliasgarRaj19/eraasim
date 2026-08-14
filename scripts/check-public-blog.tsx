@@ -61,7 +61,8 @@ const adminShell = readFileSync(new URL("../apps/admin/app/(admin)/admin-shell.t
 const publicFooter = readFileSync(new URL("../components/footer-content.tsx", import.meta.url), "utf8");
 assert(adminShell.includes("Designed by Aliasgar Raj"));
 assert(publicFooter.includes("Designed by Aliasgar Raj"));
-assert(publicFooter.includes('href="/"') && publicFooter.includes('href="/blog"') && publicFooter.includes('href="/#categories"'), "Footer fallback navigation must preserve approved links");
+const footerConfigSource = readFileSync(new URL("../src/footer.ts", import.meta.url), "utf8");
+assert(publicFooter.includes("fixedFooterPages") && footerConfigSource.includes('home:{title:"Home",path:"/"}') && footerConfigSource.includes('blog:{title:"Blog",path:"/blog"}'), "Footer fallback navigation must preserve controlled fixed links");
 const homepageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 assert(homepageSource.includes("getHomeStoryPool(config.latestStories.selectionMode, config.latestStories.manualPostIds)"), "homepage story pool must come from the resolved configuration");
 assert(!homepageSource.includes("categoryDiscovery"), "retired Home Category Discovery must not render");
