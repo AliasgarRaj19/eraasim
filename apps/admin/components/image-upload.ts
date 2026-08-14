@@ -28,3 +28,14 @@ export async function uploadImageWith(fetcher: Fetcher, file: File) {
 export async function uploadImage(file: File) {
   return uploadImageWith(fetch, file);
 }
+
+export async function uploadAboutImage(file: File) {
+  const formData = new FormData(); formData.set("image", file);
+  const response = await fetch("/api/uploads/about", { method: "POST", body: formData });
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  let result: UploadResult | null = null;
+  if (contentType.includes("application/json")) { try { result = JSON.parse(await response.text()) as UploadResult; } catch { result = null; } }
+  if (!response.ok) throw new Error(result?.error || statusMessage(response.status));
+  if (!result?.url || typeof result.url !== "string") throw new Error("The About image service returned an invalid response.");
+  return result.url;
+}

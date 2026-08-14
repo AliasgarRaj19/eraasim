@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -42,6 +43,27 @@ export async function saveImage(file: File) {
   const root = uploadRoot();
   await mkdir(root, { recursive: true });
   await writeFile(path.join(/*turbopackIgnore: true*/ root, filename), bytes, { flag: "wx", mode: 0o640 });
+  return { filename, url: `/api/uploads/${filename}` };
+}
+
+export async function normalizeAboutImage(bytes: Buffer) {
+  return sharp(bytes, { failOn: "error", limitInputPixels: 40_000_000 }).rotate()
+    .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82, effort: 4 }).toBuffer({ resolveWithObject: true });
+}
+
+export async function saveAboutImage(file: File) {
+  if (file.type === "image/gif") throw new Error("About images support JPEG, PNG, or WebP. Animated GIF is not supported.");
+  const extension = imageTypes[file.type as keyof typeof imageTypes];
+  if (!extension || extension === "gif") throw new Error("Upload a JPEG, PNG, or WebP image.");
+  if (!file.size || file.size > MAX_IMAGE_BYTES) throw new Error("Images must be no larger than 5 MB.");
+  const input = Buffer.from(await file.arrayBuffer());
+  if (!hasExpectedSignature(input, file.type as keyof typeof imageTypes)) throw new Error("The file content does not match its image type.");
+  let output: Buffer;
+  try { output = (await normalizeAboutImage(input)).data; } catch { throw new Error("The image could not be safely processed."); }
+  const filename = `${randomUUID()}.webp`, root = uploadRoot();
+  await mkdir(root, { recursive: true });
+  await writeFile(path.join(/*turbopackIgnore: true*/ root, filename), output, { flag: "wx", mode: 0o640 });
   return { filename, url: `/api/uploads/${filename}` };
 }
 
