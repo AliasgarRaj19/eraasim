@@ -9,8 +9,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
       UPLOAD_ROOT: /app/storage/uploads
-      CONTACT_EMAIL_WEBHOOK_URL: ${CONTACT_EMAIL_WEBHOOK_URL:-}
-      CONTACT_EMAIL_WEBHOOK_TOKEN: ${CONTACT_EMAIL_WEBHOOK_TOKEN:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy
