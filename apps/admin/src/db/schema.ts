@@ -4,6 +4,7 @@ import { type AnyPgColumn, boolean, check, date, index, inet, integer, jsonb, pg
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
 export const postStatus = pgEnum("post_status", ["draft", "published", "scheduled", "unpublished"]);
+export const genericPageStatus = pgEnum("generic_page_status", ["draft", "published", "unpublished"]);
 export const contactMessageStatus = pgEnum("contact_message_status", ["new", "read", "replied", "archived"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
@@ -189,6 +190,29 @@ export const posts = pgTable("posts", {
   index("posts_deleted_at_idx").on(table.deletedAt),
 ]);
 
+export const genericPages = pgTable("generic_pages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  status: genericPageStatus("status").notNull().default("draft"),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  featuredImagePath: text("featured_image_path"),
+  featuredImageAlt: text("featured_image_alt"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
+  updatedById: uuid("updated_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("generic_pages_slug_uidx").on(table.slug),
+  index("generic_pages_status_idx").on(table.status),
+  index("generic_pages_deleted_at_idx").on(table.deletedAt),
+  index("generic_pages_published_at_idx").on(table.publishedAt),
+]);
+
 export const postDailyViews = pgTable("post_daily_views", {
   postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
   viewDate: date("view_date", { mode: "string" }).notNull(),
@@ -205,6 +229,8 @@ export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({
   activityLogs: many(activityLogs),
   createdPosts: many(posts, { relationName: "postCreator" }),
   updatedPosts: many(posts, { relationName: "postUpdater" }),
+  createdPages: many(genericPages, { relationName: "pageCreator" }),
+  updatedPages: many(genericPages, { relationName: "pageUpdater" }),
 }));
 export const rolesRelations = relations(roles, ({ many }) => ({ staff: many(staffRoles), permissions: many(rolePermissions) }));
 export const permissionsRelations = relations(permissions, ({ many }) => ({ roles: many(rolePermissions) }));
@@ -218,5 +244,9 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   createdBy: one(staffAccounts, { fields: [posts.createdById], references: [staffAccounts.id], relationName: "postCreator" }),
   updatedBy: one(staffAccounts, { fields: [posts.updatedById], references: [staffAccounts.id], relationName: "postUpdater" }),
   dailyViews: many(postDailyViews),
+}));
+export const genericPagesRelations = relations(genericPages, ({ one }) => ({
+  createdBy: one(staffAccounts, { fields: [genericPages.createdById], references: [staffAccounts.id], relationName: "pageCreator" }),
+  updatedBy: one(staffAccounts, { fields: [genericPages.updatedById], references: [staffAccounts.id], relationName: "pageUpdater" }),
 }));
 export const postDailyViewsRelations = relations(postDailyViews, ({ one }) => ({ post: one(posts, { fields: [postDailyViews.postId], references: [posts.id] }) }));

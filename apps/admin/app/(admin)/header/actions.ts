@@ -6,6 +6,7 @@ import { requirePermission } from "@/src/auth/authorization";
 import { db } from "@/src/db";
 import { activityLogs, headerConfigurations } from "@/src/db/schema";
 import { defaultHeaderConfig, parseHeaderForm } from "@/src/header/config";
+import { pageReferencesAreEligible } from "@/src/generic-pages/eligible";
 export type HeaderFormState = { error?: string };
 const identity = z.object({ expectedVersion: z.coerce.number().int().min(0), intent: z.enum(["draft", "publish"]) });
 export async function saveHeader(_state: HeaderFormState, formData: FormData): Promise<HeaderFormState> {
@@ -13,7 +14,7 @@ export async function saveHeader(_state: HeaderFormState, formData: FormData): P
   if (!id.success) return { error: "This Header request is invalid." };
   const { session } = await requirePermission(id.data.intent === "publish" ? "header.publish" : "header.edit");
   const parsed = parseHeaderForm(formData); if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Review the Header fields." };
-  if (parsed.data.manualItems.length) return { error: "One or more selected Pages are not publicly eligible." };
+  if (!await pageReferencesAreEligible(parsed.data.manualItems.map(item => item.pageId))) return { error: "One or more selected Pages are not publicly eligible." };
   const result = await db.transaction(async (tx) => {
     const [current] = await tx.select().from(headerConfigurations).where(eq(headerConfigurations.id, "header")).limit(1).for("update");
     const version = current?.draftVersion ?? 0; if (version !== id.data.expectedVersion) return "stale";
