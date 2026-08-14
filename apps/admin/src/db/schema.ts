@@ -4,6 +4,7 @@ import { type AnyPgColumn, boolean, check, date, index, inet, integer, jsonb, pg
 export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
 export const postStatus = pgEnum("post_status", ["draft", "published", "scheduled", "unpublished"]);
+export const contactMessageStatus = pgEnum("contact_message_status", ["new", "read", "replied", "archived"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -124,6 +125,18 @@ export const blogPageConfigurations = pgTable("blog_page_configurations", {
   draftVersion: integer("draft_version").notNull().default(1), publishedAt: timestamp("published_at", { withTimezone: true }), publishedById: uuid("published_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const contactPageConfigurations = pgTable("contact_page_configurations", {
+  id: text("id").primaryKey(), draft: jsonb("draft").$type<Record<string, unknown>>().notNull(), published: jsonb("published").$type<Record<string, unknown>>(),
+  draftVersion: integer("draft_version").notNull().default(1), publishedAt: timestamp("published_at", { withTimezone: true }), publishedById: uuid("published_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const contactMessages = pgTable("contact_messages", {
+  id: uuid("id").primaryKey().defaultRandom(), name: text("name").notNull(), email: text("email").notNull(), phone: text("phone"), subject: text("subject").notNull(), message: text("message").notNull(),
+  status: contactMessageStatus("status").notNull().default("new"), submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  notificationSent: boolean("notification_sent").notNull().default(false), notificationSentAt: timestamp("notification_sent_at", { withTimezone: true }),
+}, (table) => [index("contact_messages_status_idx").on(table.status), index("contact_messages_submitted_idx").on(table.submittedAt)]);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),

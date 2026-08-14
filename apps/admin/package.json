@@ -34,6 +34,8 @@
     ,"check:footer-cms": "tsx scripts/check-footer-cms.ts"
     ,"check:theme-cms": "tsx scripts/check-theme-cms.ts"
     ,"check:blog-page-cms": "tsx scripts/check-blog-page-cms.ts"
+    ,"check:contact-cms": "tsx scripts/check-contact-cms.ts"
+    ,"check:contact-inbox": "tsx scripts/check-contact-inbox.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",

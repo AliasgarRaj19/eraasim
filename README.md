@@ -139,3 +139,6 @@ sudo deployment/nginx/install-admin-site.sh
 ```
 
 The installer backs up an existing `/etc/nginx/sites-available/admin.eraasim.signalgrowth.in`, installs the tracked replacement, runs `nginx -t`, restores the backup if validation fails, and reloads Nginx only after successful validation. It neither restarts other services nor modifies certificates. Certificate material remains owned by Certbot under `/etc/letsencrypt`; the tracked Nginx file only references the standard live certificate, options, and DH-parameter paths.
+# Contact form email notifications
+
+Contact enquiries are stored in PostgreSQL before notification is attempted. Optional runtime-only `CONTACT_EMAIL_WEBHOOK_URL` and `CONTACT_EMAIL_WEBHOOK_TOKEN` values enable the HTTPS webhook notification adapter. Leave them empty to retain enquiries with a **Not sent** notification state; builds do not require these secrets.

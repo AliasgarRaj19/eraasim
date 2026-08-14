@@ -15,6 +15,7 @@
     ,"check:public-theme": "tsx scripts/check-public-theme.ts"
     ,"check:public-blog-layout": "tsx scripts/check-public-blog-layout.tsx"
     ,"check:category-pages": "tsx scripts/check-category-pages.tsx"
+    ,"check:contact-form": "tsx scripts/check-contact-form.ts"
   },
   "dependencies": {
     "next": "16.3.0",
