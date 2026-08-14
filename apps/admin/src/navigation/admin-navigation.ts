@@ -43,6 +43,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
       { label: "Home Page", href: "/pages/home", permission: "pages.home.view" },
       { label: "Blog Page", href: "/pages/blog", permission: "pages.blog.view" },
       { label: "Contact Us", href: "/pages/contact-us", permission: "pages.contact.view" },
+      { label: "About", href: "/pages/about", permission: "pages.about.view" },
       { label: "Create Page", href: "/pages/new", permission: "pages.create" },
       { label: "Pages List", href: "/pages", permission: "pages.view" },
     ],

@@ -132,6 +132,12 @@ export const contactPageConfigurations = pgTable("contact_page_configurations", 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const aboutPageConfigurations = pgTable("about_page_configurations", {
+  id: text("id").primaryKey(), draft: jsonb("draft").$type<Record<string, unknown>>().notNull(), published: jsonb("published").$type<Record<string, unknown>>(),
+  draftVersion: integer("draft_version").notNull().default(1), publishedAt: timestamp("published_at", { withTimezone: true }), publishedById: uuid("published_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const contactMessages = pgTable("contact_messages", {
   id: uuid("id").primaryKey().defaultRandom(), name: text("name").notNull(), email: text("email").notNull(), phone: text("phone"), subject: text("subject").notNull(), message: text("message").notNull(),
   status: contactMessageStatus("status").notNull().default("new"), submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

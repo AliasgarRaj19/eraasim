@@ -16,7 +16,8 @@
     "check:public-blog-layout": "tsx scripts/check-public-blog-layout.tsx",
     "check:category-pages": "tsx scripts/check-category-pages.tsx",
     "check:contact-form": "tsx scripts/check-contact-form.ts",
-    "check:contact-notification": "tsx scripts/check-contact-notification.ts"
+    "check:contact-notification": "tsx scripts/check-contact-notification.ts",
+    "check:public-about": "tsx scripts/check-public-about.tsx"
   },
   "dependencies": {
     "next": "16.3.0",
