@@ -131,6 +131,9 @@ export const categories = pgTable("categories", {
   slug: text("slug").notNull(),
   parentId: uuid("parent_id").references((): AnyPgColumn => categories.id, { onDelete: "restrict" }),
   description: text("description"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  featuredPostId: uuid("featured_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

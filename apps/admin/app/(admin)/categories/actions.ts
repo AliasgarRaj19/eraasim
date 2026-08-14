@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/src/auth/authorization";
@@ -25,7 +25,8 @@ async function saveCategoryWithIdentity(_state: CategoryFormState, formData: For
         if (!current) throw new Error("CATEGORY_NOT_FOUND");
         const [duplicate] = await tx.select({ id: categories.id }).from(categories).where(and(eq(categories.slug, parsed.data.slug), ne(categories.id, current.id))).limit(1);
         if (duplicate) throw new Error("SLUG_DUPLICATE");
-        await tx.update(categories).set({ name: parsed.data.name, slug: parsed.data.slug, description: parsed.data.description, updatedAt: new Date() }).where(eq(categories.id, current.id));
+        if(parsed.data.featuredPostId){const[featured]=await tx.select({id:posts.id}).from(posts).where(and(eq(posts.id,parsed.data.featuredPostId),eq(posts.categoryId,current.id),eq(posts.status,"published"),isNull(posts.deletedAt))).limit(1);if(!featured)throw new Error("INVALID_FEATURED_POST")}
+        await tx.update(categories).set({ name: parsed.data.name, slug: parsed.data.slug, description: parsed.data.description, seoTitle:parsed.data.seoTitle,seoDescription:parsed.data.seoDescription,featuredPostId:parsed.data.featuredPostId, updatedAt: new Date() }).where(eq(categories.id, current.id));
         savedId = current.id;
         await tx.insert(activityLogs).values({ staffAccountId: session.user.id, action: "category.updated", entityType: "category", entityId: current.id, description: "Category updated.", metadata: { categoryId: current.id, parentCategoryId: current.parentId, slug: parsed.data.slug } });
       } else {
@@ -35,7 +36,8 @@ async function saveCategoryWithIdentity(_state: CategoryFormState, formData: For
         }
         const [duplicate] = await tx.select({ id: categories.id }).from(categories).where(eq(categories.slug, parsed.data.slug)).limit(1);
         if (duplicate) throw new Error("SLUG_DUPLICATE");
-        const [created] = await tx.insert(categories).values({ name: parsed.data.name, slug: parsed.data.slug, description: parsed.data.description, parentId: parentId ?? null }).returning({ id: categories.id });
+        if(parsed.data.featuredPostId)throw new Error("INVALID_FEATURED_POST");
+        const [created] = await tx.insert(categories).values({ name: parsed.data.name, slug: parsed.data.slug, description: parsed.data.description,seoTitle:parsed.data.seoTitle,seoDescription:parsed.data.seoDescription,featuredPostId:null, parentId: parentId ?? null }).returning({ id: categories.id });
         savedId = created.id;
         await tx.insert(activityLogs).values({ staffAccountId: session.user.id, action: "category.created", entityType: "category", entityId: created.id, description: parentId ? "Child category created." : "Parent category created.", metadata: { categoryId: created.id, parentCategoryId: parentId ?? null, slug: parsed.data.slug } });
       }
@@ -49,6 +51,7 @@ async function saveCategoryWithIdentity(_state: CategoryFormState, formData: For
     if (message === "SLUG_DUPLICATE" || code === "23505") return { fieldErrors: { slug: ["This category slug is already in use."] } };
     if (message === "INVALID_PARENT") return { error: "Child categories can only be created under a Parent Category." };
     if (message === "CATEGORY_NOT_FOUND") return { error: "This category no longer exists." };
+    if (message === "INVALID_FEATURED_POST") return { error: "Featured Post must be a currently published post assigned directly to this category." };
     throw error;
   }
 }

@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import type { CategoryFormState } from "@/app/(admin)/categories/actions";
 import { slugify } from "@/src/blog/slug";
 
-export function CategoryForm({ category, parent, action: submitAction }: { category?: { id: string; name: string; slug: string; description: string; parentId: string | null }; parent?: { id: string; name: string }; action: (state: CategoryFormState, formData: FormData) => Promise<CategoryFormState> }) {
+type FeaturedOption={id:string;title:string};
+export function CategoryForm({ category, parent, featuredOptions=[], action: submitAction }: { category?: { id: string; name: string; slug: string; description: string; parentId: string | null;seoTitle:string;seoDescription:string;featuredPostId:string|null }; parent?: { id: string; name: string };featuredOptions?:FeaturedOption[]; action: (state: CategoryFormState, formData: FormData) => Promise<CategoryFormState> }) {
   const [state, action, pending] = useActionState(submitAction, {} as CategoryFormState);
   const [name, setName] = useState(category?.name ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
@@ -19,6 +20,9 @@ export function CategoryForm({ category, parent, action: submitAction }: { categ
       <label>{child ? "Child Category Name" : "Category Name"}<input name="name" value={name} onChange={(event) => { const value = event.target.value; setName(value); if (!slugEdited) setSlug(slugify(value)); }} required maxLength={200} disabled={pending} />{state.fieldErrors?.name ? <span className="field-error">{state.fieldErrors.name[0]}</span> : null}</label>
       <label>Slug<div className="slug-input"><span>/category/</span><input name="slug" value={slug} onChange={(event) => { setSlugEdited(true); setSlug(event.target.value.toLowerCase()); }} onBlur={() => setSlug(slugify(slug))} required maxLength={180} disabled={pending} /></div>{state.fieldErrors?.slug ? <span className="field-error">{state.fieldErrors.slug[0]}</span> : null}</label>
       <label>Description<textarea name="description" defaultValue={category?.description ?? ""} rows={5} maxLength={2000} disabled={pending} /></label>
+      <label>SEO Title<input name="seoTitle" defaultValue={category?.seoTitle??""} maxLength={200} disabled={pending}/><small>Falls back to the Category name.</small></label>
+      <label>SEO Description<textarea name="seoDescription" defaultValue={category?.seoDescription??""} rows={3} maxLength={500} disabled={pending}/><small>Falls back to the Category description.</small></label>
+      <label>Featured Post{featuredOptions.length?<select name="featuredPostId" defaultValue={category?.featuredPostId??""} disabled={pending}><option value="">No featured post</option>{featuredOptions.map(post=><option key={post.id} value={post.id}>{post.title}</option>)}</select>:<><input type="hidden" name="featuredPostId" value=""/><p className="field-note">No published posts are assigned directly to this Category. Save the Category and assign a post before selecting a featured story.</p></>}</label>
       <button type="submit" disabled={pending}>{pending ? "Savingâ€¦" : category ? "Save Category" : "Create Category"}</button>
     </form>
   </section>;

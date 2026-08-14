@@ -5,6 +5,9 @@ export const categoryInputSchema = z.object({
   name: z.string().trim().min(1, "Category name is required.").max(200),
   slug: z.string().trim().min(1, "Slug is required.").max(180),
   description: z.string().trim().max(2_000, "Description is too long.").optional(),
+  seoTitle: z.string().trim().max(200, "SEO title is too long.").optional(),
+  seoDescription: z.string().trim().max(500, "SEO description is too long.").optional(),
+  featuredPostId: z.string().uuid("Select a valid featured post.").or(z.literal("")).optional(),
 });
 
 export function parseCategoryInput(formData: FormData) {
@@ -12,7 +15,7 @@ export function parseCategoryInput(formData: FormData) {
   if (!parsed.success) return parsed;
   const slug = slugify(parsed.data.slug);
   if (!isValidSlug(slug)) return { success: false as const, error: { flatten: () => ({ fieldErrors: { slug: ["Use lowercase letters, numbers, and single hyphens only."] } }) } };
-  return { success: true as const, data: { ...parsed.data, slug, description: parsed.data.description || null } };
+  return { success: true as const, data: { ...parsed.data, slug, description: parsed.data.description || null, seoTitle: parsed.data.seoTitle || null, seoDescription: parsed.data.seoDescription || null, featuredPostId: parsed.data.featuredPostId || null } };
 }
 
 export function canCreateChild(parent: { id: string; parentId: string | null } | undefined, requestedParentId: string) {
