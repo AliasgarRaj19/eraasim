@@ -19,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!parsed.success) return null;
       const email = parsed.data.email.toLowerCase();
       const [account] = await db.select().from(staffAccounts).where(sql`lower(${staffAccounts.email}) = ${email}`).limit(1);
-      if (!account || account.status !== "active" || !(await verifyPassword(parsed.data.password, account.passwordHash))) return null;
+      if (!account || account.status !== "active" || !account.passwordHash || !(await verifyPassword(parsed.data.password, account.passwordHash))) return null;
       return { id: account.id, email: account.email, name: account.name, isMasterAdmin: account.isMasterAdmin };
     },
   })],

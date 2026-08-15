@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
-export default function Page() { return <PlaceholderPage href="/staff/roles" title="Roles" />; }
+import{redirect}from"next/navigation";export default function LegacyRoles(){redirect("/staff")}

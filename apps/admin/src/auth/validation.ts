@@ -7,3 +7,4 @@ export const masterAdminPasswordSchema = z.string()
   .regex(/[A-Z]/, "Password must include an uppercase letter.")
   .regex(/[0-9]/, "Password must include a number.")
   .regex(/[^A-Za-z0-9]/, "Password must include a symbol.");
+export const staffPasswordSchema = masterAdminPasswordSchema;

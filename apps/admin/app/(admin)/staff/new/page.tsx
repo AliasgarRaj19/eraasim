@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
-export default function Page() { return <PlaceholderPage href="/staff/new" title="Add Staff" />; }
+import{StaffInvitationForm}from"@/components/staff-invitation-form";import{requirePermission}from"@/src/auth/authorization";export default async function NewStaff(){await requirePermission("staff.create");return <section className="home-cms-page"><div className="page-heading"><p className="page-eyebrow">Staff</p><h1>Invite Staff</h1><p>The staff member creates their own password. New accounts receive no permissions by default.</p></div><StaffInvitationForm/></section>}

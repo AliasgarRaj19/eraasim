@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, check, date, index, inet, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
-export const accountStatus = pgEnum("staff_account_status", ["active", "disabled"]);
+export const accountStatus = pgEnum("staff_account_status", ["invited", "active", "disabled"]);
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
 export const postStatus = pgEnum("post_status", ["draft", "published", "scheduled", "unpublished"]);
 export const genericPageStatus = pgEnum("generic_page_status", ["draft", "published", "unpublished"]);
@@ -15,12 +15,15 @@ export const subscriberDeliveryStatus = pgEnum("subscriber_delivery_status", ["p
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
+  name: text("name"),
   email: text("email").notNull(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"),
+  roleLabel: text("role_label"),
   status: accountStatus("status").notNull().default("active"),
   isMasterAdmin: boolean("is_master_admin").notNull().default(false),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
+  registeredAt: timestamp("registered_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
@@ -31,6 +34,7 @@ export const staffAccounts = pgTable("staff_accounts", {
 export const staffInvitations = pgTable("staff_invitations", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
+  staffAccountId: uuid("staff_account_id").notNull().references(() => staffAccounts.id, { onDelete: "cascade" }),
   tokenHash: text("token_hash").notNull().unique(),
   invitedById: uuid("invited_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
   status: invitationStatus("status").notNull().default("pending"),
@@ -38,7 +42,7 @@ export const staffInvitations = pgTable("staff_invitations", {
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [index("staff_invitations_email_idx").on(table.email)]);
+}, (table) => [index("staff_invitations_email_idx").on(table.email), index("staff_invitations_staff_status_idx").on(table.staffAccountId,table.status)]);
 
 export const roles = pgTable("roles", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -70,6 +74,24 @@ export const staffRoles = pgTable("staff_roles", {
   roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [primaryKey({ columns: [table.staffAccountId, table.roleId] })]);
+
+export const staffPermissions = pgTable("staff_permissions", {
+  staffAccountId: uuid("staff_account_id").notNull().references(() => staffAccounts.id, { onDelete: "cascade" }),
+  permissionId: uuid("permission_id").notNull().references(() => permissions.id, { onDelete: "cascade" }),
+  grantedById: uuid("granted_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [primaryKey({ columns: [table.staffAccountId, table.permissionId] }),index("staff_permissions_permission_idx").on(table.permissionId)]);
+
+export const staffPasswordResets = pgTable("staff_password_resets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  staffAccountId: uuid("staff_account_id").notNull().references(() => staffAccounts.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  requestedById: uuid("requested_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  status: invitationStatus("status").notNull().default("pending"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("staff_password_resets_staff_status_idx").on(table.staffAccountId,table.status)]);
 
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

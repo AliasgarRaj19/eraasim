@@ -29,10 +29,8 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     label: "Staff",
     permission: "staff.view",
     children: [
-      { label: "Add Staff", href: "/staff/new", permission: "staff.create" },
-      { label: "Staff List", href: "/staff", permission: "staff.view" },
-      { label: "Roles", href: "/staff/roles", permission: "roles.view" },
-      { label: "Permissions", href: "/staff/permissions", permission: "permissions.view" },
+      { label: "All Staff", href: "/staff", permission: "staff.view" },
+      { label: "New Staff", href: "/staff/new", permission: "staff.create" },
     ],
   },
   { label: "Analytics", href: "/analytics", permission: "analytics.view" },

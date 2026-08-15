@@ -39,6 +39,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
+      ADMIN_SITE_URL: ${ADMIN_SITE_URL:-}
       UPLOAD_ROOT: /app/storage/uploads
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}

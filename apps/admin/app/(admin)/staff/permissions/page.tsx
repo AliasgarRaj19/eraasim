@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
-export default function Page() { return <PlaceholderPage href="/staff/permissions" title="Permissions" />; }
+import{redirect}from"next/navigation";export default function LegacyPermissions(){redirect("/staff")}

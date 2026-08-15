@@ -3,7 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/src/db";
-import { permissions, rolePermissions, staffAccounts, staffRoles } from "@/src/db/schema";
+import { permissions, staffAccounts, staffPermissions } from "@/src/db/schema";
 import { findNavigationItem } from "@/src/navigation/admin-navigation";
 
 export async function hasPermission(staffAccountId: string, permissionKey: string) {
@@ -13,10 +13,9 @@ export async function hasPermission(staffAccountId: string, permissionKey: strin
   if (account.isMasterAdmin) return true;
 
   const [grant] = await db.select({ key: permissions.key })
-    .from(staffRoles)
-    .innerJoin(rolePermissions, eq(staffRoles.roleId, rolePermissions.roleId))
-    .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-    .where(and(eq(staffRoles.staffAccountId, staffAccountId), eq(permissions.key, permissionKey)))
+    .from(staffPermissions)
+    .innerJoin(permissions, eq(staffPermissions.permissionId, permissions.id))
+    .where(and(eq(staffPermissions.staffAccountId, staffAccountId), eq(permissions.key, permissionKey)))
     .limit(1);
   return Boolean(grant);
 }
@@ -41,10 +40,9 @@ const getAdminAuthorization = cache(async (staffAccountId: string): Promise<Admi
   if (account.isMasterAdmin) return { isMasterAdmin: true, permissionKeys: new Set<string>() };
 
   const grants = await db.select({ key: permissions.key })
-    .from(staffRoles)
-    .innerJoin(rolePermissions, eq(staffRoles.roleId, rolePermissions.roleId))
-    .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-    .where(eq(staffRoles.staffAccountId, staffAccountId));
+    .from(staffPermissions)
+    .innerJoin(permissions, eq(staffPermissions.permissionId, permissions.id))
+    .where(eq(staffPermissions.staffAccountId, staffAccountId));
 
   return { isMasterAdmin: false, permissionKeys: new Set(grants.map(({ key }) => key)) };
 });
