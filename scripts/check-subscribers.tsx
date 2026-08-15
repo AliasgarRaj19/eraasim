@@ -1,1 +1,16 @@
-import assert from"node:assert/strict";import fs from"node:fs";import path from"node:path";import{normalizeSubscriberEmail,validSubscriberEmail,hashToken}from"../src/subscribers";const root=path.resolve(import.meta.dirname,".."),read=(f:string)=>fs.readFileSync(path.join(root,f),"utf8");assert.equal(normalizeSubscriberEmail(" Test@Example.COM "),"test@example.com");assert.ok(validSubscriberEmail("a@b.com")&&!validSubscriberEmail("bad"));assert.notEqual(hashToken("raw"),"raw");const api=read("app/api/subscribe/route.ts"),popup=read("components/subscriber-popup.tsx"),unsub=read("app/unsubscribe/[token]/page.tsx");for(const m of ["ON CONFLICT(normalized_email)","status='active'","unsubscribed_at=NULL","source","subscriberRateLimit","website","enabled=true"])assert.ok(api.includes(m),m);for(const m of ["popupDelaySeconds","dismissalCooldownHours","eraasim-subscriber-dismissed","eraasim-subscriber-subscribed","role=\"dialog\"","aria-label=\"Close subscription popup\""])assert.ok(popup.includes(m),m);assert.ok(unsub.includes("unsubscribe_token_hash")&&unsub.includes("status='unsubscribed'"));console.log("Subscriber signup, resubscribe, popup cooldown, spam protection, and unsubscribe regressions passed.");
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { hashToken, normalizeSubscriberEmail, validSubscriberEmail } from "../src/subscribers";
+const root = path.resolve(import.meta.dirname, ".."), read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
+assert.equal(normalizeSubscriberEmail(" Test@Example.COM "), "test@example.com");
+assert.ok(validSubscriberEmail("a@b.com") && !validSubscriberEmail("bad"));
+assert.notEqual(hashToken("raw"), "raw");
+const api = read("app/api/subscribe/route.ts"), popup = read("components/subscriber-popup.tsx"), footer = read("components/footer-subscribe-form.tsx"), footerContent = read("components/footer-content.tsx"), unsub = read("app/unsubscribe/[token]/page.tsx");
+for (const marker of ["ON CONFLICT(normalized_email)", "status='active'", "unsubscribed_at=NULL", "subscriberRateLimit", "website", "enabled=true"]) assert.ok(api.includes(marker), marker);
+for (const marker of ["popupDelaySeconds", "dismissalCooldownHours", "eraasim-subscriber-dismissed", "eraasim-subscriber-subscribed", "role=\"dialog\"", "aria-label=\"Close subscription popup\""]) assert.ok(popup.includes(marker), marker);
+for (const marker of ["/api/subscribe", "source = \"footer\"", "eraasim-subscriber-subscribed", "You're subscribed.", "type=\"email\"", "autoComplete=\"email\"", "website", "role=\"status\""]) assert.ok(footer.includes(marker), marker);
+assert.ok(footerContent.includes("subscriberSettings?.enabled") && !footerContent.includes("subscriberSettings?.popupEnabled"));
+assert.ok(!api.includes("subscribed_at=CASE") && api.includes('source === "footer"'));
+assert.ok(unsub.includes("unsubscribe_token_hash") && unsub.includes("status='unsubscribed'"));
+console.log("Subscriber signup, same-record resubscribe, popup settings, footer form, spam protection, and unsubscribe regressions passed.");

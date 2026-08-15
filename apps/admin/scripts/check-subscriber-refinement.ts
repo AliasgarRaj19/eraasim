@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+const root = path.resolve(import.meta.dirname, ".."), read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
+const page = read("app/(admin)/subscribers/page.tsx"), actions = read("app/(admin)/subscribers/actions.ts"), css = read("app/refinement.css");
+for (const marker of ["Email", "Active", "Unsubscribed", "Last notification", "Re-subscribe", "pageHref", "Export CSV", "subscriber-status"]) assert.ok(page.includes(marker), marker);
+for (const marker of ["subscriber.resubscribed", "unsubscribedAt: next === \"active\" ? null", "subscribers.settings", "returning", "status: next"]) assert.ok(actions.includes(marker), marker);
+assert.ok(!actions.includes(" subscribedAt:") && actions.includes("eq(subscribers.status"));
+for (const marker of ["overflow-x:auto", "subscriber-email", "white-space:nowrap", "subscriber-status-active", "subscriber-status-unsubscribed"]) assert.ok(css.includes(marker), marker);
+console.log("Subscriber Admin table and same-record re-subscribe regressions passed.");

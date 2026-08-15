@@ -1,1 +1,21 @@
-"use server";import{eq}from"drizzle-orm";import{revalidatePath}from"next/cache";import{z}from"zod";import{requirePermission}from"@/src/auth/authorization";import{db}from"@/src/db";import{activityLogs,subscribers}from"@/src/db/schema";export async function unsubscribeSubscriber(f:FormData){const id=z.uuid().safeParse(f.get("subscriberId"));if(!id.success)throw new Error("Invalid subscriber.");const{session}=await requirePermission("subscribers.settings"),now=new Date();await db.transaction(async tx=>{await tx.update(subscribers).set({status:"unsubscribed",unsubscribedAt:now,updatedAt:now}).where(eq(subscribers.id,id.data));await tx.insert(activityLogs).values({staffAccountId:session.user.id,action:"subscriber.manually_unsubscribed",entityType:"subscriber",entityId:id.data,description:"Subscriber manually unsubscribed.",metadata:{subscriberId:id.data}})});revalidatePath("/subscribers")}
+"use server";
+import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requirePermission } from "@/src/auth/authorization";
+import { db } from "@/src/db";
+import { activityLogs, subscribers } from "@/src/db/schema";
+
+async function changeSubscriberStatus(formData: FormData, next: "active" | "unsubscribed") {
+  const parsed = z.uuid().safeParse(formData.get("subscriberId"));
+  if (!parsed.success) throw new Error("Invalid subscriber.");
+  const { session } = await requirePermission("subscribers.settings"), now = new Date();
+  await db.transaction(async (tx) => {
+    const [changed] = await tx.update(subscribers).set({ status: next, unsubscribedAt: next === "active" ? null : now, updatedAt: now }).where(and(eq(subscribers.id, parsed.data), eq(subscribers.status, next === "active" ? "unsubscribed" : "active"))).returning({ id: subscribers.id });
+    if (!changed) return;
+    await tx.insert(activityLogs).values({ staffAccountId: session.user.id, action: next === "active" ? "subscriber.resubscribed" : "subscriber.manually_unsubscribed", entityType: "subscriber", entityId: parsed.data, description: next === "active" ? "Subscriber manually re-subscribed." : "Subscriber manually unsubscribed.", metadata: { subscriberId: parsed.data, status: next } });
+  });
+  revalidatePath("/subscribers");
+}
+export async function unsubscribeSubscriber(formData: FormData) { await changeSubscriberStatus(formData, "unsubscribed"); }
+export async function resubscribeSubscriber(formData: FormData) { await changeSubscriberStatus(formData, "active"); }

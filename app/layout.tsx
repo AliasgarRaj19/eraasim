@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const [theme,subscriberSettings] = await Promise.all([getPublicTheme(),getPublicSubscriberSettings()]);
   return (
     <html lang="en" style={themeStyle(theme)}>
-      <body><a className="skip-link" href="#main-content">Skip to content</a><PublicHeader /><main id="main-content">{children}</main><PublicFooter /><SubscriberPopup settings={subscriberSettings}/></body>
+      <body><a className="skip-link" href="#main-content">Skip to content</a><PublicHeader /><main id="main-content">{children}</main><PublicFooter subscriberSettings={subscriberSettings}/><SubscriberPopup settings={subscriberSettings}/></body>
     </html>
   );
 }
