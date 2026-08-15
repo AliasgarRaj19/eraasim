@@ -21,6 +21,8 @@ export type PostFormValues = {
   scheduledLocal: string;
   status?: "draft" | "published" | "scheduled" | "unpublished";
   commentsEnabled: boolean;
+  likesEnabled: boolean;
+  sharingEnabled: boolean;
 };
 
 const emptyValues: PostFormValues = {
@@ -34,6 +36,8 @@ const emptyValues: PostFormValues = {
   seoDescription: "",
   scheduledLocal: "",
   commentsEnabled: true,
+  likesEnabled: true,
+  sharingEnabled: true,
 };
 
 function FieldError({ messages }: { messages?: string[] }) {
@@ -169,6 +173,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
             </label>
             {categories.length === 0 ? <p className="field-note">No categories available. Create a category first. Category is optional for now.</p> : null}
             <label><input type="checkbox" name="commentsEnabled" defaultChecked={initialValues.commentsEnabled} disabled={pending} /> Enable Comments</label>
+            <fieldset className="engagement-post-controls"><legend>Engagement</legend><label><input type="checkbox" name="likesEnabled" defaultChecked={initialValues.likesEnabled} disabled={pending} /> Enable Likes</label><label><input type="checkbox" name="sharingEnabled" defaultChecked={initialValues.sharingEnabled} disabled={pending} /> Enable Sharing</label></fieldset>
             <label>Schedule date and time
               <input name="scheduledLocal" type="datetime-local" defaultValue={initialValues.scheduledLocal} disabled={pending} />
               <small>Required when the resulting status is Scheduled.</small>

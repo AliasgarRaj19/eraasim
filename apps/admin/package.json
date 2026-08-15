@@ -41,7 +41,8 @@
     "check:generic-pages": "tsx scripts/check-generic-pages.ts",
     "check:careers-jobs": "tsx scripts/check-careers-jobs.ts",
     "check:comments": "tsx scripts/check-comments.ts",
-    "check:comment-reply-email": "tsx scripts/check-comment-reply-email.ts"
+    "check:comment-reply-email": "tsx scripts/check-comment-reply-email.ts",
+    "check:engagement-settings": "tsx scripts/check-engagement-settings.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",

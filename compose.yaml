@@ -15,6 +15,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
       CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy

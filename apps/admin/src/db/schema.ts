@@ -184,6 +184,8 @@ export const posts = pgTable("posts", {
   publishedAt: timestamp("published_at", { withTimezone: true }),
   unpublishedAt: timestamp("unpublished_at", { withTimezone: true }),
   commentsEnabled: boolean("comments_enabled").notNull().default(true),
+  likesEnabled: boolean("likes_enabled").notNull().default(true),
+  sharingEnabled: boolean("sharing_enabled").notNull().default(true),
   seoTitle: text("seo_title"),
   seoDescription: text("seo_description"),
   createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
@@ -198,6 +200,21 @@ export const posts = pgTable("posts", {
   index("posts_category_idx").on(table.categoryId),
   index("posts_deleted_at_idx").on(table.deletedAt),
 ]);
+
+export const blogEngagementSettings = pgTable("blog_engagement_settings", {
+  id: text("id").primaryKey(),
+  likesEnabled: boolean("likes_enabled").notNull().default(true), sharingEnabled: boolean("sharing_enabled").notNull().default(true),
+  whatsappEnabled: boolean("whatsapp_enabled").notNull().default(true), facebookEnabled: boolean("facebook_enabled").notNull().default(true),
+  xEnabled: boolean("x_enabled").notNull().default(true), linkedinEnabled: boolean("linkedin_enabled").notNull().default(true),
+  copyLinkEnabled: boolean("copy_link_enabled").notNull().default(true), nativeShareEnabled: boolean("native_share_enabled").notNull().default(true),
+  updatedById: uuid("updated_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const postLikes = pgTable("post_likes", {
+  id: uuid("id").primaryKey().defaultRandom(), postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  tokenHash: text("anonymous_token_hash").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("post_likes_post_idx").on(table.postId), uniqueIndex("post_likes_post_token_uidx").on(table.postId, table.tokenHash)]);
 
 export const commentsSettings = pgTable("comments_settings", {
   id: text("id").primaryKey(),

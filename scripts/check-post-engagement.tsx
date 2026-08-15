@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { buildShareUrls } from "../components/post-engagement";
+import { canonicalBlogUrl } from "../src/engagement";
+const root=path.resolve(import.meta.dirname,"..");const read=(file:string)=>fs.readFileSync(path.join(root,file),"utf8");
+const title="A title & more",url="https://example.test/blog/a-post",links=buildShareUrls(title,url);
+assert.equal(links.whatsapp,`https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`);assert.equal(links.facebook,`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);assert.equal(links.x,`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`);assert.equal(links.linkedin,`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`);
+assert.equal(canonicalBlogUrl("safe slug",{PUBLIC_SITE_URL:"https://eraasim.example/path"}),"https://eraasim.example/blog/safe%20slug");assert.equal(canonicalBlogUrl("post",{PUBLIC_SITE_URL:"javascript:alert(1)"}),null);
+const api=read("app/api/posts/[id]/like/route.ts"),component=read("components/post-engagement.tsx"),engagement=read("src/engagement.ts"),page=read("app/blog/[slug]/page.tsx");
+for(const marker of ["p.status='published'","p.deleted_at IS NULL","p.likes_enabled=true","COALESCE(s.likes_enabled,true)=true","hashAnonymousToken(token)","ON CONFLICT (post_id,anonymous_token_hash) DO NOTHING","intent===\"state\""])assert.ok(api.includes(marker),marker);
+assert.ok(!api.includes("ip_address")&&!api.includes("fingerprint"));for(const marker of ["aria-pressed","Unlike post","Like post","Link copied","navigator.share","whatsapp","facebook","linkedin"])assert.ok(component.includes(marker),marker);
+for(const marker of ["parent_comment_id IS NULL","is_admin_reply=false","status='approved'","p.sharing_enabled AND COALESCE(s.sharing_enabled,true)"])assert.ok(engagement.includes(marker),marker);assert.ok(page.indexOf("<PostEngagement")<page.indexOf("<BlogComments"));assert.ok(page.includes("commentsAvailable"));
+console.log("Post likes, hydration, share URLs, canonical URL, and comment count regressions passed.");

@@ -32,6 +32,8 @@ export default async function EditPostPage({ params, searchParams }: {
       scheduledFor: posts.scheduledFor,
       status: posts.status,
       commentsEnabled: posts.commentsEnabled,
+      likesEnabled: posts.likesEnabled,
+      sharingEnabled: posts.sharingEnabled,
       updatedAt: posts.updatedAt,
     }).from(posts).where(editablePostPredicate(id)).limit(1),
     db.select({ id: categories.id, name: categories.name, parentId: categories.parentId }).from(categories).orderBy(asc(categories.name)),
@@ -58,6 +60,8 @@ export default async function EditPostPage({ params, searchParams }: {
         scheduledLocal: formatKolkataDateTime(post.scheduledFor),
         status: post.status,
         commentsEnabled: post.commentsEnabled,
+        likesEnabled: post.likesEnabled,
+        sharingEnabled: post.sharingEnabled,
       }}
     />
   );

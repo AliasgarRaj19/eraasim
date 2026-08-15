@@ -8,7 +8,7 @@ export type PublicPostCard = {
   categoryName: string | null; categorySlug: string | null; publishedAt: Date; authorName: string; content?: Record<string, unknown>;
 };
 
-export type PublicArticle = PublicPostCard & { content: Record<string, unknown>; seoTitle: string | null; seoDescription: string | null; commentsEnabled: boolean };
+export type PublicArticle = PublicPostCard & { content: Record<string, unknown>; seoTitle: string | null; seoDescription: string | null; commentsEnabled: boolean; likesEnabled:boolean; sharingEnabled:boolean };
 
 const cardColumns = `p.id, p.slug, p.title, p.short_description AS "shortDescription", p.featured_image_path AS "featuredImagePath",
   c.name AS "categoryName", c.slug AS "categorySlug", p.published_at AS "publishedAt", s.name AS "authorName"`;
@@ -62,8 +62,8 @@ export async function incrementPublicArticleView(postId: string) {
 
 export async function getPublicArticle(slug: string) {
   const pool = getPool();
-  const result = await pool.query<PublicArticle>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription", p.comments_enabled AS "commentsEnabled" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`, [slug]);
-  return result.rows[0] ?? null;
+  try { const result = await pool.query<PublicArticle>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription", p.comments_enabled AS "commentsEnabled",p.likes_enabled AS "likesEnabled",p.sharing_enabled AS "sharingEnabled" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`, [slug]); return result.rows[0] ?? null; }
+  catch(error){if((error as{code?:string}).code!=="42703")throw error;const legacy=await pool.query<Omit<PublicArticle,"likesEnabled"|"sharingEnabled">>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription", p.comments_enabled AS "commentsEnabled" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`,[slug]);return legacy.rows[0]?{...legacy.rows[0],likesEnabled:true,sharingEnabled:true}:null}
 }
 
 export async function getPublicCategories() {

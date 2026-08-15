@@ -13,6 +13,8 @@ export const postInputSchema = z.object({
   intent: z.enum(["preserve", "draft", "published", "scheduled", "unpublished"]),
   scheduledLocal: z.string().optional(),
   commentsEnabled: z.preprocess((value) => value === "on" || value === true, z.boolean()),
+  likesEnabled: z.preprocess((value) => value === "on" || value === true, z.boolean()),
+  sharingEnabled: z.preprocess((value) => value === "on" || value === true, z.boolean()),
 });
 
 export function parsePostFormData(formData: FormData) {
