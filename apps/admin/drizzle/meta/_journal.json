@@ -127,6 +127,13 @@
       "when": 1786768093797,
       "tag": "0017_thick_guardsmen",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786802629676,
+      "tag": "0018_youthful_santa_claus",
+      "breakpoints": true
     }
   ]
 }

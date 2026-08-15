@@ -74,7 +74,10 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Contact Messages", href: "/contact-messages", permission: "contact.messages.view" },
   { label: "Header", href: "/header", permission: "header.view" },
   { label: "Theme", href: "/theme", permission: "theme.view" },
-  { label: "Logs", href: "/logs", permission: "logs.view" },
+  { label: "Logs", permission: "logs.view", children: [
+    { label: "Activity Logs", href: "/logs", permission: "logs.view" },
+    { label: "Settings", href: "/logs/settings", permission: "logs.settings" },
+  ] },
   { label: "Sitemap", href: "/sitemap", permission: "sitemap.view" },
   { label: "Footer", href: "/footer/content", permission: "footer.view" },
 ];

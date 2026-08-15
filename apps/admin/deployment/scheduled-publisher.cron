@@ -1,2 +1,3 @@
 * * * * * cd /app && npm run publish:scheduled
 * * * * * cd /app && npm run notify:subscribers
+17 3 * * * cd /app && npm run cleanup:activity-logs

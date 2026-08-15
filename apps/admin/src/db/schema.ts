@@ -81,7 +81,18 @@ export const activityLogs = pgTable("activity_logs", {
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   ipAddress: inet("ip_address"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [index("activity_logs_staff_created_idx").on(table.staffAccountId, table.createdAt)]);
+}, (table) => [
+  index("activity_logs_staff_created_idx").on(table.staffAccountId, table.createdAt),
+  index("activity_logs_created_idx").on(table.createdAt),
+  index("activity_logs_action_created_idx").on(table.action, table.createdAt),
+]);
+
+export const activityLogSettings = pgTable("activity_log_settings", {
+  id: text("id").primaryKey(),
+  retentionMonths: integer("retention_months").notNull().default(3),
+  updatedById: uuid("updated_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [check("activity_log_settings_retention_chk", sql`${table.retentionMonths} IN (3, 6, 12)`) ]);
 
 export const homePageConfigurations = pgTable("home_page_configurations", {
   id: text("id").primaryKey(),

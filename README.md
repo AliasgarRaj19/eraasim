@@ -18,7 +18,7 @@ compose.yaml                 Eraasim-only service topology
 
 The public application remains at the repository root to preserve its existing build and deployment behavior. Administrative identity data is intentionally separate from any future subscriber/customer domain.
 
-Subscriber notifications use the existing Gmail SMTP configuration plus `PUBLIC_SITE_URL` and a deployment-generated `SUBSCRIBER_TOKEN_SECRET` of at least 32 characters. The scheduled publisher container runs finite publication and subscriber-delivery commands every minute; it does not expose a port. Public signup throttling is bounded and process-local, so multi-instance deployments should replace it with a shared rate limiter before scaling horizontally.
+Subscriber notifications use the existing Gmail SMTP configuration plus `PUBLIC_SITE_URL` and a deployment-generated `SUBSCRIBER_TOKEN_SECRET` of at least 32 characters. The scheduled publisher container runs finite publication and subscriber-delivery commands every minute; it does not expose a port. It also runs the finite activity-log retention cleanup daily at 03:17 UTC, using the Admin-configured 3, 6, or 12 calendar-month policy and deleting only expired rows from `activity_logs`. Public signup throttling is bounded and process-local, so multi-instance deployments should replace it with a shared rate limiter before scaling horizontally.
 
 ## Deployment allocation
 
