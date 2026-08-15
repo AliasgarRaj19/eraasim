@@ -2707,7 +2707,7 @@
           "name": "staff_account_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "token_hash": {
           "name": "token_hash",

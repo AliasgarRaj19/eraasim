@@ -34,7 +34,7 @@ export const staffAccounts = pgTable("staff_accounts", {
 export const staffInvitations = pgTable("staff_invitations", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
-  staffAccountId: uuid("staff_account_id").notNull().references(() => staffAccounts.id, { onDelete: "cascade" }),
+  staffAccountId: uuid("staff_account_id").references(() => staffAccounts.id, { onDelete: "cascade" }),
   tokenHash: text("token_hash").notNull().unique(),
   invitedById: uuid("invited_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
   status: invitationStatus("status").notNull().default("pending"),

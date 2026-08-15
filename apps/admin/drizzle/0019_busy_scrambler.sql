@@ -24,7 +24,7 @@ ALTER TABLE "staff_accounts" ALTER COLUMN "password_hash" DROP NOT NULL;--> stat
 ALTER TABLE "staff_accounts" ADD COLUMN "role_label" text;--> statement-breakpoint
 ALTER TABLE "staff_accounts" ADD COLUMN "terms_accepted_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "staff_accounts" ADD COLUMN "registered_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "staff_invitations" ADD COLUMN "staff_account_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "staff_invitations" ADD COLUMN "staff_account_id" uuid;--> statement-breakpoint
 ALTER TABLE "staff_password_resets" ADD CONSTRAINT "staff_password_resets_staff_account_id_staff_accounts_id_fk" FOREIGN KEY ("staff_account_id") REFERENCES "public"."staff_accounts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "staff_password_resets" ADD CONSTRAINT "staff_password_resets_requested_by_id_staff_accounts_id_fk" FOREIGN KEY ("requested_by_id") REFERENCES "public"."staff_accounts"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_staff_account_id_staff_accounts_id_fk" FOREIGN KEY ("staff_account_id") REFERENCES "public"."staff_accounts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -36,7 +36,7 @@ ALTER TABLE "staff_invitations" ADD CONSTRAINT "staff_invitations_staff_account_
 CREATE INDEX "staff_invitations_staff_status_idx" ON "staff_invitations" USING btree ("staff_account_id","status");
 --> statement-breakpoint
 INSERT INTO "staff_permissions" ("staff_account_id","permission_id","granted_by_id")
-SELECT DISTINCT sr."staff_account_id", rp."permission_id", NULL
+SELECT DISTINCT sr."staff_account_id", rp."permission_id", NULL::uuid
 FROM "staff_roles" sr INNER JOIN "role_permissions" rp ON rp."role_id"=sr."role_id"
 ON CONFLICT ("staff_account_id","permission_id") DO NOTHING;
 --> statement-breakpoint
