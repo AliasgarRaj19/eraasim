@@ -28,4 +28,7 @@ assert(actions.includes('status:"closed"'));
 assert(read("src/generic-pages/generic-page.ts").includes('"careers"'));
 assert(read("src/navigation/admin-navigation.ts").includes('href: "/pages/careers"'));
 assert(read("src/navigation/admin-navigation.ts").includes('href: "/jobs"'));
+const jobsList = read("app/(admin)/jobs/page.tsx");
+assert(jobsList.includes('"Not published"'));
+assert(!jobsList.includes("Ã¢"));
 console.log("Careers CMS and Job CRUD regression checks passed.");
