@@ -120,6 +120,13 @@
       "when": 1786763103698,
       "tag": "0016_lean_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786768093797,
+      "tag": "0017_thick_guardsmen",
+      "breakpoints": true
     }
   ]
 }

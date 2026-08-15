@@ -64,6 +64,10 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     { label: "Settings", href: "/comments/settings", permission: "comments.settings" },
   ] },
   { label: "Uploads", href: "/uploads", permission: "uploads.view" },
+  { label: "Subscribers", permission: "subscribers.view", children: [
+    { label: "All Subscribers", href: "/subscribers", permission: "subscribers.view" },
+    { label: "Settings", href: "/subscribers/settings", permission: "subscribers.settings" },
+  ] },
   { label: "Engagement", permission: "engagement.view", children: [
     { label: "Settings", href: "/engagement", permission: "engagement.view" },
   ] },

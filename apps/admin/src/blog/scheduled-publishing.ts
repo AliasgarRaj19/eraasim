@@ -38,6 +38,16 @@ WITH due AS (
          )
   FROM promoted
   RETURNING entity_id
+), automatic_participants AS (
+  UPDATE posts p SET automatic_notification_participated_at=CURRENT_TIMESTAMP
+  WHERE p.id IN (SELECT id FROM promoted)
+    AND p.automatic_notification_participated_at IS NULL
+    AND EXISTS(SELECT 1 FROM subscriber_settings WHERE id='global' AND enabled=true AND automatic_post_emails_enabled=true)
+  RETURNING p.id,p.published_at
+), queued AS (
+  UPDATE subscriber_settings SET pending_automatic_post_id=(SELECT id FROM automatic_participants ORDER BY published_at DESC,id DESC LIMIT 1),updated_at=CURRENT_TIMESTAMP
+  WHERE id='global' AND EXISTS(SELECT 1 FROM automatic_participants)
+  RETURNING id
 )
 SELECT count(*)::int AS count FROM logged;
 `;

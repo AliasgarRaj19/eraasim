@@ -11,6 +11,7 @@ import { resolvePublishingState } from "@/src/blog/publishing";
 import { isValidSlug, slugify } from "@/src/blog/slug";
 import { db } from "@/src/db";
 import { activityLogs, categories, posts } from "@/src/db/schema";
+import { queueAutomaticPost } from "@/src/subscribers/queue";
 
 export type CreatePostState = {
   error?: string;
@@ -91,6 +92,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
         description: action === "blog.post.created" ? "Blog post created." : `Blog post marked ${parsed.data.intent}.`,
         metadata: { status: parsed.data.intent, slug },
       })));
+      if (publishing.state.status === "published") await queueAutomaticPost(tx, post.id);
     });
   } catch (error) {
     if (error instanceof Error && error.message === "CATEGORY_UNAVAILABLE") return { fieldErrors: { categoryId: ["The selected category is no longer available."] } };

@@ -8,6 +8,10 @@ export const genericPageStatus = pgEnum("generic_page_status", ["draft", "publis
 export const jobStatus = pgEnum("job_status", ["draft", "published", "closed"]);
 export const contactMessageStatus = pgEnum("contact_message_status", ["new", "read", "replied", "archived"]);
 export const blogCommentStatus = pgEnum("blog_comment_status", ["pending", "approved", "rejected", "spam"]);
+export const subscriberStatus = pgEnum("subscriber_status", ["active", "unsubscribed"]);
+export const subscriberNotificationType = pgEnum("subscriber_notification_type", ["automatic", "manual"]);
+export const subscriberJobStatus = pgEnum("subscriber_job_status", ["pending", "processing", "completed", "failed"]);
+export const subscriberDeliveryStatus = pgEnum("subscriber_delivery_status", ["pending", "processing", "sent", "failed"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -186,6 +190,7 @@ export const posts = pgTable("posts", {
   commentsEnabled: boolean("comments_enabled").notNull().default(true),
   likesEnabled: boolean("likes_enabled").notNull().default(true),
   sharingEnabled: boolean("sharing_enabled").notNull().default(true),
+  automaticNotificationParticipatedAt: timestamp("automatic_notification_participated_at", { withTimezone: true }),
   seoTitle: text("seo_title"),
   seoDescription: text("seo_description"),
   createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
@@ -215,6 +220,19 @@ export const postLikes = pgTable("post_likes", {
   id: uuid("id").primaryKey().defaultRandom(), postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
   tokenHash: text("anonymous_token_hash").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("post_likes_post_idx").on(table.postId), uniqueIndex("post_likes_post_token_uidx").on(table.postId, table.tokenHash)]);
+
+export const subscribers = pgTable("subscribers", {
+  id: uuid("id").primaryKey().defaultRandom(), email: text("email").notNull(), normalizedEmail: text("normalized_email").notNull(), status: subscriberStatus("status").notNull().default("active"), source: text("source").notNull().default("popup"), unsubscribeTokenHash: text("unsubscribe_token_hash").notNull(), subscribedAt: timestamp("subscribed_at",{withTimezone:true}).notNull().defaultNow(), unsubscribedAt: timestamp("unsubscribed_at",{withTimezone:true}), lastNotificationAt: timestamp("last_notification_at",{withTimezone:true}), createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[uniqueIndex("subscribers_normalized_email_uidx").on(t.normalizedEmail),uniqueIndex("subscribers_unsubscribe_token_hash_uidx").on(t.unsubscribeTokenHash),index("subscribers_status_subscribed_idx").on(t.status,t.subscribedAt)]);
+export const subscriberSettings = pgTable("subscriber_settings", {
+  id:text("id").primaryKey(),enabled:boolean("enabled").notNull().default(true),popupEnabled:boolean("popup_enabled").notNull().default(true),popupHeading:text("popup_heading").notNull(),popupDescription:text("popup_description").notNull(),buttonLabel:text("button_label").notNull(),popupDelaySeconds:integer("popup_delay_seconds").notNull().default(6),dismissalCooldownHours:integer("dismissal_cooldown_hours").notNull().default(24),automaticPostEmailsEnabled:boolean("automatic_post_emails_enabled").notNull().default(true),pendingAutomaticPostId:uuid("pending_automatic_post_id").references(()=>posts.id,{onDelete:"set null"}),lastAutomaticSentAt:timestamp("last_automatic_sent_at",{withTimezone:true}),updatedById:uuid("updated_by_id").references(()=>staffAccounts.id,{onDelete:"set null"}),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[check("subscriber_settings_bounds_chk",sql`${t.popupDelaySeconds} BETWEEN 0 AND 300 AND ${t.dismissalCooldownHours} BETWEEN 1 AND 720`)]);
+export const subscriberNotificationJobs = pgTable("subscriber_notification_jobs", {
+ id:uuid("id").primaryKey().defaultRandom(),postId:uuid("post_id").notNull().references(()=>posts.id,{onDelete:"cascade"}),type:subscriberNotificationType("type").notNull(),status:subscriberJobStatus("status").notNull().default("pending"),requestedById:uuid("requested_by_id").references(()=>staffAccounts.id,{onDelete:"set null"}),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),startedAt:timestamp("started_at",{withTimezone:true}),completedAt:timestamp("completed_at",{withTimezone:true}),recipientCount:integer("recipient_count").notNull().default(0),successCount:integer("success_count").notNull().default(0),failureCount:integer("failure_count").notNull().default(0),
+},t=>[index("subscriber_jobs_status_created_idx").on(t.status,t.createdAt)]);
+export const subscriberPostDeliveries = pgTable("subscriber_post_deliveries", {
+ id:uuid("id").primaryKey().defaultRandom(),notificationJobId:uuid("notification_job_id").notNull().references(()=>subscriberNotificationJobs.id,{onDelete:"cascade"}),subscriberId:uuid("subscriber_id").notNull().references(()=>subscribers.id,{onDelete:"cascade"}),postId:uuid("post_id").notNull().references(()=>posts.id,{onDelete:"cascade"}),status:subscriberDeliveryStatus("status").notNull().default("pending"),sentAt:timestamp("sent_at",{withTimezone:true}),attemptedAt:timestamp("attempted_at",{withTimezone:true}),
+},t=>[uniqueIndex("subscriber_deliveries_job_subscriber_uidx").on(t.notificationJobId,t.subscriberId),index("subscriber_deliveries_job_status_idx").on(t.notificationJobId,t.status)]);
 
 export const commentsSettings = pgTable("comments_settings", {
   id: text("id").primaryKey(),

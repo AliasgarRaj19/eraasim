@@ -16,6 +16,7 @@ services:
       SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
       CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
       PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
+      SUBSCRIBER_TOKEN_SECRET: ${SUBSCRIBER_TOKEN_SECRET:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy
@@ -46,6 +47,7 @@ services:
       SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
       CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
       PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
+      SUBSCRIBER_TOKEN_SECRET: ${SUBSCRIBER_TOKEN_SECRET:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy
@@ -90,6 +92,14 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@eraasim-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
+      SUBSCRIBER_TOKEN_SECRET: ${SUBSCRIBER_TOKEN_SECRET:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy

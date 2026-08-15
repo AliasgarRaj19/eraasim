@@ -29,6 +29,7 @@
     "check:post-category-assignment": "tsx scripts/check-post-category-assignment.ts",
     "bootstrap:master-admin": "tsx scripts/bootstrap-master-admin.ts",
     "publish:scheduled": "tsx scripts/publish-scheduled-posts.ts",
+    "notify:subscribers": "tsx scripts/notify-subscribers.ts",
     "check:scheduled-publishing": "tsx scripts/check-scheduled-publishing.ts",
     "check:header-cms": "tsx scripts/check-header-cms.ts",
     "check:footer-cms": "tsx scripts/check-footer-cms.ts",
@@ -43,6 +44,7 @@
     "check:comments": "tsx scripts/check-comments.ts",
     "check:comment-reply-email": "tsx scripts/check-comment-reply-email.ts",
     "check:engagement-settings": "tsx scripts/check-engagement-settings.ts"
+    ,"check:subscriber-notifications": "tsx scripts/check-subscriber-notifications.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",

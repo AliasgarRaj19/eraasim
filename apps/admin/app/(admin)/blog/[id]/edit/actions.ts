@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { CreatePostState } from "@/app/(admin)/blog/new/actions";
@@ -13,7 +13,8 @@ import { competingSlugPredicate, editablePostPredicate } from "@/src/blog/post-e
 import { resolvePublishingState } from "@/src/blog/publishing";
 import { isValidSlug, slugify } from "@/src/blog/slug";
 import { db } from "@/src/db";
-import { activityLogs, categories, posts } from "@/src/db/schema";
+import { activityLogs, categories, posts, subscriberNotificationJobs } from "@/src/db/schema";
+import { queueAutomaticPost } from "@/src/subscribers/queue";
 
 const editIdentitySchema = z.object({ postId: z.uuid(), expectedUpdatedAt: z.iso.datetime() });
 
@@ -108,6 +109,7 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
         description: action === "blog.post.updated" ? "Blog post updated." : `Blog post status changed to ${publishing.state.status}.`,
         metadata: { slug, previousStatus: current.status, newStatus: publishing.state.status },
       })));
+      if (current.status !== "published" && publishing.state.status === "published") await queueAutomaticPost(tx, current.id);
       updatedPostId = current.id;
     });
   } catch (error) {
@@ -125,3 +127,5 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
 
   redirect(`/blog/${updatedPostId}/edit?updated=1`);
 }
+
+export async function requestManualSubscriberSend(formData:FormData){const parsed=z.uuid().safeParse(formData.get("postId"));if(!parsed.success)throw new Error("Invalid post.");const{session}=await requirePermission("subscribers.send");await db.transaction(async tx=>{const[post]=await tx.select({id:posts.id}).from(posts).where(and(eq(posts.id,parsed.data),eq(posts.status,"published"),isNull(posts.deletedAt))).limit(1).for("update");if(!post)throw new Error("Post not available.");await tx.insert(subscriberNotificationJobs).values({postId:post.id,type:"manual",requestedById:session.user.id});await tx.insert(activityLogs).values({staffAccountId:session.user.id,action:"subscriber.notification_manual_requested",entityType:"post",entityId:post.id,description:"Manual subscriber notification requested.",metadata:{postId:post.id,type:"manual"}})});redirect(`/blog/${parsed.data}/edit?send=requested`)}

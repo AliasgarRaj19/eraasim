@@ -1,1 +1,2 @@
 * * * * * cd /app && npm run publish:scheduled
+* * * * * cd /app && npm run notify:subscribers

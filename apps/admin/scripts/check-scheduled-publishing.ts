@@ -27,7 +27,8 @@ async function main() {
   const compose = readFileSync(new URL("../../../compose.yaml", import.meta.url), "utf8");
   assert(compose.includes("eraasim-scheduled-publisher:") && compose.includes("target: scheduled-publisher"));
   const cron = readFileSync(new URL("../deployment/scheduled-publisher.cron", import.meta.url), "utf8");
-  assert.equal(cron.trim(), "* * * * * cd /app && npm run publish:scheduled");
+  assert(cron.includes("* * * * * cd /app && npm run publish:scheduled"));
+  assert(cron.includes("* * * * * cd /app && npm run notify:subscribers"));
   console.log("PASS: Kolkata→UTC boundary, exact/equal due predicate, future/deleted/non-scheduled exclusions, atomic locking/logging, idempotent recheck, preserved schedule, public isolation, restored lifecycle, and minute scheduler integration verified.");
 }
 
