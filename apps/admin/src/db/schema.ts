@@ -219,6 +219,7 @@ export const blogComments = pgTable("blog_comments", {
   status: blogCommentStatus("status").notNull().default("pending"), isAdminReply: boolean("is_admin_reply").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(), deletedAt: timestamp("deleted_at", { withTimezone: true }),
   approvedAt: timestamp("approved_at", { withTimezone: true }), approvedById: uuid("approved_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  notificationSent: boolean("notification_sent").notNull().default(false), notificationSentAt: timestamp("notification_sent_at", { withTimezone: true }), notificationAttemptedAt: timestamp("notification_attempted_at", { withTimezone: true }),
 }, (table) => [index("blog_comments_post_status_created_idx").on(table.postId, table.status, table.createdAt), index("blog_comments_status_idx").on(table.status), index("blog_comments_deleted_idx").on(table.deletedAt)]);
 
 export const commentLikes = pgTable("comment_likes", {

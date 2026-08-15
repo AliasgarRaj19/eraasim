@@ -40,7 +40,8 @@
     "check:about-image": "tsx scripts/check-about-image.ts",
     "check:generic-pages": "tsx scripts/check-generic-pages.ts",
     "check:careers-jobs": "tsx scripts/check-careers-jobs.ts",
-    "check:comments": "tsx scripts/check-comments.ts"
+    "check:comments": "tsx scripts/check-comments.ts",
+    "check:comment-reply-email": "tsx scripts/check-comment-reply-email.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",
@@ -55,6 +56,7 @@
     "drizzle-orm": "0.45.2",
     "next": "16.3.0",
     "next-auth": "5.0.0-beta.32",
+    "nodemailer": "^9.0.5",
     "pg": "8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -63,6 +65,7 @@
   },
   "devDependencies": {
     "@types/node": "26.2.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "8.21.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",

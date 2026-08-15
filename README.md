@@ -21,9 +21,9 @@ The public application remains at the repository root to preserve its existing b
 ## Deployment allocation
 
 - VPS project root: `/opt/projects/eraasim`
-- Public: https://eraasim.signalgrowth.in — `127.0.0.1:5200` → `eraasim-web:3000`
-- Admin: https://admin.eraasim.signalgrowth.in — `127.0.0.1:5201` → `eraasim-admin:3000`
-- `5202-5299` — reserved and currently unallocated
+- Public: https://eraasim.signalgrowth.in â€” `127.0.0.1:5200` â†’ `eraasim-web:3000`
+- Admin: https://admin.eraasim.signalgrowth.in â€” `127.0.0.1:5201` â†’ `eraasim-admin:3000`
+- `5202-5299` â€” reserved and currently unallocated
 
 These are host-side Eraasim allocations. New services must not use a reserved port without documenting the allocation. PostgreSQL has no host port mapping and is reachable only as `eraasim-postgres:5432` on `eraasim-network`.
 
@@ -141,4 +141,8 @@ sudo deployment/nginx/install-admin-site.sh
 The installer backs up an existing `/etc/nginx/sites-available/admin.eraasim.signalgrowth.in`, installs the tracked replacement, runs `nginx -t`, restores the backup if validation fails, and reloads Nginx only after successful validation. It neither restarts other services nor modifies certificates. Certificate material remains owned by Certbot under `/etc/letsencrypt`; the tracked Nginx file only references the standard live certificate, options, and DH-parameter paths.
 # Contact form email notifications
 
-Contact enquiries are stored in PostgreSQL before notification is attempted. Production delivery uses Gmail SMTP through Nodemailer and requires runtime-only `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_APP_PASSWORD`, and `CONTACT_EMAIL_FROM` values on `eraasim-web`. For Gmail, enable 2-Step Verification and use a dedicated Google App Password—not the normal account password. The Published Contact Us CMS remains the only source of the recipient. Builds do not require SMTP values. Missing/invalid configuration or SMTP rejection preserves the enquiry with **Not sent** status and writes only a sanitized error to the public-service log.
+Contact enquiries are stored in PostgreSQL before notification is attempted. Production delivery uses Gmail SMTP through Nodemailer and requires runtime-only `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_APP_PASSWORD`, and `CONTACT_EMAIL_FROM` values on `eraasim-web`. For Gmail, enable 2-Step Verification and use a dedicated Google App Passwordâ€”not the normal account password. The Published Contact Us CMS remains the only source of the recipient. Builds do not require SMTP values. Missing/invalid configuration or SMTP rejection preserves the enquiry with **Not sent** status and writes only a sanitized error to the public-service log.
+
+## Comment reply email notifications
+
+Admin comment replies reuse the same Gmail SMTP variables on `eraasim-admin`. Set `PUBLIC_SITE_URL` to the trusted public origin used for `/blog/{slug}#comments` links. Replies are committed before notification is attempted; delivery failure leaves the reply intact and records **Not sent** without storing provider errors.

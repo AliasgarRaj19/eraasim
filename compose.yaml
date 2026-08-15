@@ -38,6 +38,13 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
       UPLOAD_ROOT: /app/storage/uploads
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      CONTACT_EMAIL_FROM: ${CONTACT_EMAIL_FROM:-}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
     depends_on:
       eraasim-postgres:
         condition: service_healthy
