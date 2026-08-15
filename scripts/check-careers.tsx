@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { defaultCareersConfig, parsePublicCareers } from "../src/careers";
+
+const root = path.resolve(import.meta.dirname, "..");
+const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
+assert.deepEqual(parsePublicCareers(null), defaultCareersConfig);
+assert.deepEqual(parsePublicCareers({ broken: true }), defaultCareersConfig);
+const data = read("src/careers.ts");
+assert.equal((data.match(/status='published' AND deleted_at IS NULL/g) ?? []).length, 3);
+assert(data.includes("ORDER BY published_at DESC,id DESC"));
+assert(data.includes("LIMIT $1 OFFSET $2"));
+const listing = read("app/careers/page.tsx");
+for (const label of ["No.", "Job Title", "Short Description"]) assert(listing.includes(label));
+assert(listing.includes("result.start+index+1"));
+assert(listing.includes("config.jobs.emptyMessage"));
+const detail = read("app/careers/[slug]/page.tsx");
+assert(detail.includes("notFound()"));
+assert(detail.includes("<TiptapContent"));
+for (const label of ["Location", "Employment Type", "Department", "Experience"]) assert(detail.includes(label));
+const css = read("app/refinement.css");
+assert(css.includes(".careers-table td::before"));
+assert(css.includes("@media(max-width:640px)"));
+console.log("Public Careers and Job Opportunity regression checks passed.");

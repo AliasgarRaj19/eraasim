@@ -5,6 +5,7 @@ export const accountStatus = pgEnum("staff_account_status", ["active", "disabled
 export const invitationStatus = pgEnum("staff_invitation_status", ["pending", "accepted", "revoked", "expired"]);
 export const postStatus = pgEnum("post_status", ["draft", "published", "scheduled", "unpublished"]);
 export const genericPageStatus = pgEnum("generic_page_status", ["draft", "published", "unpublished"]);
+export const jobStatus = pgEnum("job_status", ["draft", "published", "closed"]);
 export const contactMessageStatus = pgEnum("contact_message_status", ["new", "read", "replied", "archived"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
@@ -139,6 +140,12 @@ export const aboutPageConfigurations = pgTable("about_page_configurations", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const careersPageConfigurations = pgTable("careers_page_configurations", {
+  id: text("id").primaryKey(), draft: jsonb("draft").$type<Record<string, unknown>>().notNull(), published: jsonb("published").$type<Record<string, unknown>>(),
+  draftVersion: integer("draft_version").notNull().default(1), publishedAt: timestamp("published_at", { withTimezone: true }), publishedById: uuid("published_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const contactMessages = pgTable("contact_messages", {
   id: uuid("id").primaryKey().defaultRandom(), name: text("name").notNull(), email: text("email").notNull(), phone: text("phone"), subject: text("subject").notNull(), message: text("message").notNull(),
   status: contactMessageStatus("status").notNull().default("new"), submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -213,6 +220,13 @@ export const genericPages = pgTable("generic_pages", {
   index("generic_pages_published_at_idx").on(table.publishedAt),
 ]);
 
+export const jobs = pgTable("jobs", {
+  id: uuid("id").primaryKey().defaultRandom(), title: text("title").notNull(), slug: text("slug").notNull(), shortDescription: text("short_description").notNull(), description: jsonb("description").$type<Record<string, unknown>>().notNull(),
+  location: text("location"), employmentType: text("employment_type"), department: text("department"), experience: text("experience"), status: jobStatus("status").notNull().default("draft"),
+  publishedAt: timestamp("published_at", { withTimezone: true }), closedAt: timestamp("closed_at", { withTimezone: true }), deletedAt: timestamp("deleted_at", { withTimezone: true }), seoTitle: text("seo_title"), seoDescription: text("seo_description"),
+  createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }), updatedById: uuid("updated_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("jobs_slug_uidx").on(table.slug), index("jobs_status_published_idx").on(table.status, table.publishedAt), index("jobs_deleted_at_idx").on(table.deletedAt)]);
+
 export const postDailyViews = pgTable("post_daily_views", {
   postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
   viewDate: date("view_date", { mode: "string" }).notNull(),
@@ -231,6 +245,7 @@ export const staffAccountsRelations = relations(staffAccounts, ({ many }) => ({
   updatedPosts: many(posts, { relationName: "postUpdater" }),
   createdPages: many(genericPages, { relationName: "pageCreator" }),
   updatedPages: many(genericPages, { relationName: "pageUpdater" }),
+  createdJobs: many(jobs, { relationName: "jobCreator" }), updatedJobs: many(jobs, { relationName: "jobUpdater" }),
 }));
 export const rolesRelations = relations(roles, ({ many }) => ({ staff: many(staffRoles), permissions: many(rolePermissions) }));
 export const permissionsRelations = relations(permissions, ({ many }) => ({ roles: many(rolePermissions) }));
@@ -249,4 +264,5 @@ export const genericPagesRelations = relations(genericPages, ({ one }) => ({
   createdBy: one(staffAccounts, { fields: [genericPages.createdById], references: [staffAccounts.id], relationName: "pageCreator" }),
   updatedBy: one(staffAccounts, { fields: [genericPages.updatedById], references: [staffAccounts.id], relationName: "pageUpdater" }),
 }));
+export const jobsRelations = relations(jobs, ({ one }) => ({ createdBy: one(staffAccounts, { fields: [jobs.createdById], references: [staffAccounts.id], relationName: "jobCreator" }), updatedBy: one(staffAccounts, { fields: [jobs.updatedById], references: [staffAccounts.id], relationName: "jobUpdater" }) }));
 export const postDailyViewsRelations = relations(postDailyViews, ({ one }) => ({ post: one(posts, { fields: [postDailyViews.postId], references: [posts.id] }) }));

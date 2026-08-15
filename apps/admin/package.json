@@ -38,7 +38,8 @@
     "check:contact-inbox": "tsx scripts/check-contact-inbox.ts",
     "check:about-cms": "tsx scripts/check-about-cms.ts",
     "check:about-image": "tsx scripts/check-about-image.ts",
-    "check:generic-pages": "tsx scripts/check-generic-pages.ts"
+    "check:generic-pages": "tsx scripts/check-generic-pages.ts",
+    "check:careers-jobs": "tsx scripts/check-careers-jobs.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",
