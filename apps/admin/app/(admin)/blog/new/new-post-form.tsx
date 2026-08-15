@@ -20,6 +20,7 @@ export type PostFormValues = {
   seoDescription: string;
   scheduledLocal: string;
   status?: "draft" | "published" | "scheduled" | "unpublished";
+  commentsEnabled: boolean;
 };
 
 const emptyValues: PostFormValues = {
@@ -32,6 +33,7 @@ const emptyValues: PostFormValues = {
   seoTitle: "",
   seoDescription: "",
   scheduledLocal: "",
+  commentsEnabled: true,
 };
 
 function FieldError({ messages }: { messages?: string[] }) {
@@ -166,6 +168,7 @@ export function PostForm({ categories, action: submitAction, initialValues, mode
               <FieldError messages={fieldError("categoryId")} />
             </label>
             {categories.length === 0 ? <p className="field-note">No categories available. Create a category first. Category is optional for now.</p> : null}
+            <label><input type="checkbox" name="commentsEnabled" defaultChecked={initialValues.commentsEnabled} disabled={pending} /> Enable Comments</label>
             <label>Schedule date and time
               <input name="scheduledLocal" type="datetime-local" defaultValue={initialValues.scheduledLocal} disabled={pending} />
               <small>Required when the resulting status is Scheduled.</small>

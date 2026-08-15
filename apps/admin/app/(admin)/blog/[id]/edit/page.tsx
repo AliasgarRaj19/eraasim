@@ -31,6 +31,7 @@ export default async function EditPostPage({ params, searchParams }: {
       seoDescription: posts.seoDescription,
       scheduledFor: posts.scheduledFor,
       status: posts.status,
+      commentsEnabled: posts.commentsEnabled,
       updatedAt: posts.updatedAt,
     }).from(posts).where(editablePostPredicate(id)).limit(1),
     db.select({ id: categories.id, name: categories.name, parentId: categories.parentId }).from(categories).orderBy(asc(categories.name)),
@@ -56,6 +57,7 @@ export default async function EditPostPage({ params, searchParams }: {
         seoDescription: post.seoDescription ?? "",
         scheduledLocal: formatKolkataDateTime(post.scheduledFor),
         status: post.status,
+        commentsEnabled: post.commentsEnabled,
       }}
     />
   );

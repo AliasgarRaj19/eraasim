@@ -12,6 +12,7 @@ export const postInputSchema = z.object({
   seoDescription: z.string().trim().max(4_000, "SEO Description is too long.").optional(),
   intent: z.enum(["preserve", "draft", "published", "scheduled", "unpublished"]),
   scheduledLocal: z.string().optional(),
+  commentsEnabled: z.preprocess((value) => value === "on" || value === true, z.boolean()),
 });
 
 export function parsePostFormData(formData: FormData) {

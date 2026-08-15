@@ -8,7 +8,7 @@ export type PublicPostCard = {
   categoryName: string | null; categorySlug: string | null; publishedAt: Date; authorName: string; content?: Record<string, unknown>;
 };
 
-export type PublicArticle = PublicPostCard & { content: Record<string, unknown>; seoTitle: string | null; seoDescription: string | null };
+export type PublicArticle = PublicPostCard & { content: Record<string, unknown>; seoTitle: string | null; seoDescription: string | null; commentsEnabled: boolean };
 
 const cardColumns = `p.id, p.slug, p.title, p.short_description AS "shortDescription", p.featured_image_path AS "featuredImagePath",
   c.name AS "categoryName", c.slug AS "categorySlug", p.published_at AS "publishedAt", s.name AS "authorName"`;
@@ -62,7 +62,7 @@ export async function incrementPublicArticleView(postId: string) {
 
 export async function getPublicArticle(slug: string) {
   const pool = getPool();
-  const result = await pool.query<PublicArticle>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`, [slug]);
+  const result = await pool.query<PublicArticle>(`SELECT ${cardColumns}, p.content, p.seo_title AS "seoTitle", p.seo_description AS "seoDescription", p.comments_enabled AS "commentsEnabled" FROM posts p ${cardJoins} WHERE p.slug = $1 AND ${PUBLIC_POST_SQL} LIMIT 1`, [slug]);
   return result.rows[0] ?? null;
 }
 

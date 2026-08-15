@@ -86,6 +86,7 @@ export async function updatePost(_state: CreatePostState, formData: FormData): P
         categoryId,
         seoTitle: optionalText(parsed.data.seoTitle),
         seoDescription: optionalText(parsed.data.seoDescription),
+        commentsEnabled: parsed.data.commentsEnabled,
         ...publishing.state,
         updatedById: session.user.id,
         updatedAt: now,

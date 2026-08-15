@@ -1,0 +1,1 @@
+import{CommentsList}from"@/src/comments/admin-list";export default function Page({searchParams}:{searchParams:Promise<{page?:string}>}){return <CommentsList status="rejected" searchParams={searchParams}/>}

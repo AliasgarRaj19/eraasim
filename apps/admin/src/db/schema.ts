@@ -7,6 +7,7 @@ export const postStatus = pgEnum("post_status", ["draft", "published", "schedule
 export const genericPageStatus = pgEnum("generic_page_status", ["draft", "published", "unpublished"]);
 export const jobStatus = pgEnum("job_status", ["draft", "published", "closed"]);
 export const contactMessageStatus = pgEnum("contact_message_status", ["new", "read", "replied", "archived"]);
+export const blogCommentStatus = pgEnum("blog_comment_status", ["pending", "approved", "rejected", "spam"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -182,6 +183,7 @@ export const posts = pgTable("posts", {
   scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
   publishedAt: timestamp("published_at", { withTimezone: true }),
   unpublishedAt: timestamp("unpublished_at", { withTimezone: true }),
+  commentsEnabled: boolean("comments_enabled").notNull().default(true),
   seoTitle: text("seo_title"),
   seoDescription: text("seo_description"),
   createdById: uuid("created_by_id").notNull().references(() => staffAccounts.id, { onDelete: "restrict" }),
@@ -196,6 +198,32 @@ export const posts = pgTable("posts", {
   index("posts_category_idx").on(table.categoryId),
   index("posts_deleted_at_idx").on(table.deletedAt),
 ]);
+
+export const commentsSettings = pgTable("comments_settings", {
+  id: text("id").primaryKey(),
+  enabled: boolean("enabled").notNull().default(true),
+  autoApprove: boolean("auto_approve").notNull().default(false),
+  initialCount: integer("initial_count").notNull().default(10),
+  loadMoreCount: integer("load_more_count").notNull().default(10),
+  pendingMessage: text("pending_message").notNull(),
+  approvedMessage: text("approved_message").notNull(),
+  updatedById: uuid("updated_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [check("comments_settings_counts_chk", sql`${table.initialCount} BETWEEN 5 AND 50 AND ${table.loadMoreCount} BETWEEN 5 AND 50`)]);
+
+export const blogComments = pgTable("blog_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  parentCommentId: uuid("parent_comment_id").references((): AnyPgColumn => blogComments.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), email: text("email").notNull(), comment: text("comment").notNull(),
+  status: blogCommentStatus("status").notNull().default("pending"), isAdminReply: boolean("is_admin_reply").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(), deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }), approvedById: uuid("approved_by_id").references(() => staffAccounts.id, { onDelete: "set null" }),
+}, (table) => [index("blog_comments_post_status_created_idx").on(table.postId, table.status, table.createdAt), index("blog_comments_status_idx").on(table.status), index("blog_comments_deleted_idx").on(table.deletedAt)]);
+
+export const commentLikes = pgTable("comment_likes", {
+  id: uuid("id").primaryKey().defaultRandom(), commentId: uuid("comment_id").notNull().references(() => blogComments.id, { onDelete: "cascade" }), tokenHash: text("anonymous_token_hash").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("comment_likes_comment_idx").on(table.commentId), uniqueIndex("comment_likes_comment_token_uidx").on(table.commentId, table.tokenHash)]);
 
 export const genericPages = pgTable("generic_pages", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -73,6 +73,7 @@ export async function createPost(_state: CreatePostState, formData: FormData): P
         ...publishing.state,
         seoTitle: optionalText(parsed.data.seoTitle),
         seoDescription: optionalText(parsed.data.seoDescription),
+        commentsEnabled: parsed.data.commentsEnabled,
         createdById: session.user.id,
         updatedById: session.user.id,
       }).returning({ id: posts.id });
