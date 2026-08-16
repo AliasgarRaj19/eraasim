@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isValidSlug, slugify } from "@/src/blog/slug";
 
-export const RESERVED_PAGE_SLUGS = new Set(["about", "admin", "analytics", "api", "blog", "careers", "categories", "contact-us", "dashboard", "footer", "header", "login", "logs", "media", "pages", "sitemap", "staff", "theme", "uploads"]);
+export const RESERVED_PAGE_SLUGS = new Set(["about", "admin", "analytics", "api", "blog", "careers", "categories", "contact-us", "dashboard", "footer", "header", "login", "logs", "media", "pages", "search", "sitemap", "staff", "theme", "uploads"]);
 export const genericPageInputSchema = z.object({
   title: z.string().trim().min(1, "Title is required.").max(200), slug: z.string().trim().min(1).max(180), content: z.string().min(1),
   featuredImagePath: z.string().trim().max(500).optional(), featuredImageIntent: z.enum(["keep", "replace", "remove"]).default("keep"), featuredImageAlt: z.string().trim().max(300).optional(),

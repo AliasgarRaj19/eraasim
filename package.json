@@ -22,7 +22,8 @@
     "check:careers": "tsx scripts/check-careers.tsx",
     "check:comments": "tsx scripts/check-comments.tsx",
     "check:post-engagement": "tsx scripts/check-post-engagement.tsx"
-    ,"check:subscribers": "tsx scripts/check-subscribers.tsx"
+    ,"check:subscribers": "tsx scripts/check-subscribers.tsx",
+    "check:public-search": "tsx scripts/check-public-search.tsx"
   },
   "dependencies": {
     "next": "16.3.0",
