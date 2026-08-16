@@ -49,7 +49,8 @@
     "check:comments": "tsx scripts/check-comments.ts",
     "check:comment-reply-email": "tsx scripts/check-comment-reply-email.ts",
     "check:engagement-settings": "tsx scripts/check-engagement-settings.ts"
-    ,"check:subscriber-notifications": "tsx scripts/check-subscriber-notifications.ts"
+    ,"check:subscriber-notifications": "tsx scripts/check-subscriber-notifications.ts",
+    "check:subscriber-worker-sql": "tsx scripts/check-subscriber-worker-sql.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.30.0",
