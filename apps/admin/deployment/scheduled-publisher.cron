@@ -1,3 +1,4 @@
 * * * * * cd /app && npm run publish:scheduled
 * * * * * cd /app && npm run notify:subscribers
 17 3 * * * cd /app && npm run cleanup:activity-logs
+43 3 * * * cd /app && npm run cleanup:admin-notifications

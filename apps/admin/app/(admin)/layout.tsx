@@ -1,10 +1,12 @@
 import { AdminShell } from "@/app/(admin)/admin-shell";
 import { requireAdministrativeAccount } from "@/src/auth/authorization";
-import { filterNavigation } from "@/src/navigation/admin-navigation";
+import { applyNavigationBadges, filterNavigation } from "@/src/navigation/admin-navigation";
+import { getAdminBadgeCounts } from "@/src/notifications/badges";
 
 export default async function AuthenticatedAdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { session, authorization } = await requireAdministrativeAccount();
-  const navigation = filterNavigation(authorization.isMasterAdmin, authorization.permissionKeys);
+  const badgeCounts = await getAdminBadgeCounts(authorization);
+  const navigation = applyNavigationBadges(filterNavigation(authorization.isMasterAdmin, authorization.permissionKeys), badgeCounts);
 
   return (
     <AdminShell
@@ -14,6 +16,8 @@ export default async function AuthenticatedAdminLayout({ children }: Readonly<{ 
         email: session.user.email,
         isMasterAdmin: authorization.isMasterAdmin,
       }}
+      unreadOperationalCount={badgeCounts.unreadNotifications}
+      showNotifications={authorization.isMasterAdmin || authorization.permissionKeys.has("notifications.view")}
     >
       {children}
     </AdminShell>

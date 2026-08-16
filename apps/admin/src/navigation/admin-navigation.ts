@@ -2,6 +2,9 @@ export type AdminNavigationItem = {
   label: string;
   href?: string;
   permission?: string;
+  badge?: number;
+  badgeLabel?: string;
+  badgeKey?: "contactMessages" | "pendingComments" | "newSubscribers" | "unreadNotifications";
   children?: readonly AdminNavigationItem[];
 };
 
@@ -53,23 +56,28 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     { label: "New Job", href: "/jobs/new", permission: "jobs.create" },
     { label: "Deleted Jobs", href: "/jobs/deleted", permission: "jobs.view" },
   ] },
-  { label: "Comments", permission: "comments.view", children: [
+  { label: "Comments", permission: "comments.view", badgeKey: "pendingComments", badgeLabel: "pending comments", children: [
     { label: "All Comments", href: "/comments", permission: "comments.view" },
-    { label: "Pending", href: "/comments/pending", permission: "comments.view" },
+    { label: "Pending", href: "/comments/pending", permission: "comments.view", badgeKey: "pendingComments", badgeLabel: "pending comments" },
     { label: "Approved", href: "/comments/approved", permission: "comments.view" },
     { label: "Rejected", href: "/comments/rejected", permission: "comments.view" },
     { label: "Spam", href: "/comments/spam", permission: "comments.view" },
     { label: "Settings", href: "/comments/settings", permission: "comments.settings" },
   ] },
   { label: "Uploads", href: "/uploads", permission: "uploads.view" },
-  { label: "Subscribers", permission: "subscribers.view", children: [
-    { label: "All Subscribers", href: "/subscribers", permission: "subscribers.view" },
+  { label: "Subscribers", permission: "subscribers.view", badgeKey: "newSubscribers", badgeLabel: "new subscribers", children: [
+    { label: "All Subscribers", href: "/subscribers", permission: "subscribers.view", badgeKey: "newSubscribers", badgeLabel: "new subscribers" },
     { label: "Settings", href: "/subscribers/settings", permission: "subscribers.settings" },
   ] },
   { label: "Engagement", permission: "engagement.view", children: [
     { label: "Settings", href: "/engagement", permission: "engagement.view" },
   ] },
-  { label: "Contact Messages", href: "/contact-messages", permission: "contact.messages.view" },
+  { label: "Contact Messages", href: "/contact-messages", permission: "contact.messages.view", badgeKey: "contactMessages", badgeLabel: "new contact messages" },
+  { label: "Notifications", permission: "notifications.view", badgeKey: "unreadNotifications", badgeLabel: "unread operational notifications", children: [
+    { label: "All", href: "/notifications", permission: "notifications.view" },
+    { label: "Unread", href: "/notifications/unread", permission: "notifications.view", badgeKey: "unreadNotifications", badgeLabel: "unread operational notifications" },
+    { label: "Resolved", href: "/notifications/resolved", permission: "notifications.view" },
+  ] },
   { label: "Header", href: "/header", permission: "header.view" },
   { label: "Theme", href: "/theme", permission: "theme.view" },
   { label: "Logs", permission: "logs.view", children: [
@@ -101,4 +109,9 @@ export function filterNavigation(
     const children = item.children.filter((child) => canSee(child.permission));
     return children.length ? [{ ...item, children }] : [];
   });
+}
+
+export function applyNavigationBadges(navigation: AdminNavigationItem[], badges: Record<string, number>) {
+  const decorate = (item: AdminNavigationItem): AdminNavigationItem => ({ ...item, badge: item.badgeKey ? badges[item.badgeKey] ?? 0 : undefined, children: item.children?.map(decorate) });
+  return navigation.map(decorate);
 }

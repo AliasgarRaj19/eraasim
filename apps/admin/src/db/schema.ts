@@ -12,6 +12,10 @@ export const subscriberStatus = pgEnum("subscriber_status", ["active", "unsubscr
 export const subscriberNotificationType = pgEnum("subscriber_notification_type", ["automatic", "manual"]);
 export const subscriberJobStatus = pgEnum("subscriber_job_status", ["pending", "processing", "completed", "failed"]);
 export const subscriberDeliveryStatus = pgEnum("subscriber_delivery_status", ["pending", "processing", "sent", "failed"]);
+export const adminNotificationStatus = pgEnum("admin_notification_status", ["unread", "read", "resolved"]);
+export const adminNotificationSeverity = pgEnum("admin_notification_severity", ["info", "warning", "error"]);
+export const adminNotificationModule = pgEnum("admin_notification_module", ["contact", "comments", "subscribers", "staff", "blog", "system"]);
+export const adminNotificationType = pgEnum("admin_notification_type", ["contact_email_failed", "comment_reply_email_failed", "subscriber_job_failed", "subscriber_worker_failed", "staff_invitation_email_failed", "password_reset_email_failed", "scheduled_publishing_failed"]);
 
 export const staffAccounts = pgTable("staff_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -255,8 +259,8 @@ export const postLikes = pgTable("post_likes", {
 }, (table) => [index("post_likes_post_idx").on(table.postId), uniqueIndex("post_likes_post_token_uidx").on(table.postId, table.tokenHash)]);
 
 export const subscribers = pgTable("subscribers", {
-  id: uuid("id").primaryKey().defaultRandom(), email: text("email").notNull(), normalizedEmail: text("normalized_email").notNull(), status: subscriberStatus("status").notNull().default("active"), source: text("source").notNull().default("popup"), unsubscribeTokenHash: text("unsubscribe_token_hash").notNull(), subscribedAt: timestamp("subscribed_at",{withTimezone:true}).notNull().defaultNow(), unsubscribedAt: timestamp("unsubscribed_at",{withTimezone:true}), lastNotificationAt: timestamp("last_notification_at",{withTimezone:true}), createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
-},t=>[uniqueIndex("subscribers_normalized_email_uidx").on(t.normalizedEmail),uniqueIndex("subscribers_unsubscribe_token_hash_uidx").on(t.unsubscribeTokenHash),index("subscribers_status_subscribed_idx").on(t.status,t.subscribedAt)]);
+  id: uuid("id").primaryKey().defaultRandom(), email: text("email").notNull(), normalizedEmail: text("normalized_email").notNull(), status: subscriberStatus("status").notNull().default("active"), source: text("source").notNull().default("popup"), unsubscribeTokenHash: text("unsubscribe_token_hash").notNull(), subscribedAt: timestamp("subscribed_at",{withTimezone:true}).notNull().defaultNow(), unsubscribedAt: timestamp("unsubscribed_at",{withTimezone:true}), lastNotificationAt: timestamp("last_notification_at",{withTimezone:true}), adminSeenAt: timestamp("admin_seen_at",{withTimezone:true}), createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[uniqueIndex("subscribers_normalized_email_uidx").on(t.normalizedEmail),uniqueIndex("subscribers_unsubscribe_token_hash_uidx").on(t.unsubscribeTokenHash),index("subscribers_status_subscribed_idx").on(t.status,t.subscribedAt),index("subscribers_status_admin_seen_idx").on(t.status,t.adminSeenAt)]);
 export const subscriberSettings = pgTable("subscriber_settings", {
   id:text("id").primaryKey(),enabled:boolean("enabled").notNull().default(true),popupEnabled:boolean("popup_enabled").notNull().default(true),popupHeading:text("popup_heading").notNull(),popupDescription:text("popup_description").notNull(),buttonLabel:text("button_label").notNull(),popupDelaySeconds:integer("popup_delay_seconds").notNull().default(6),dismissalCooldownHours:integer("dismissal_cooldown_hours").notNull().default(24),automaticPostEmailsEnabled:boolean("automatic_post_emails_enabled").notNull().default(true),pendingAutomaticPostId:uuid("pending_automatic_post_id").references(()=>posts.id,{onDelete:"set null"}),lastAutomaticSentAt:timestamp("last_automatic_sent_at",{withTimezone:true}),updatedById:uuid("updated_by_id").references(()=>staffAccounts.id,{onDelete:"set null"}),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
 },t=>[check("subscriber_settings_bounds_chk",sql`${t.popupDelaySeconds} BETWEEN 0 AND 300 AND ${t.dismissalCooldownHours} BETWEEN 1 AND 720`)]);
@@ -266,6 +270,30 @@ export const subscriberNotificationJobs = pgTable("subscriber_notification_jobs"
 export const subscriberPostDeliveries = pgTable("subscriber_post_deliveries", {
  id:uuid("id").primaryKey().defaultRandom(),notificationJobId:uuid("notification_job_id").notNull().references(()=>subscriberNotificationJobs.id,{onDelete:"cascade"}),subscriberId:uuid("subscriber_id").notNull().references(()=>subscribers.id,{onDelete:"cascade"}),postId:uuid("post_id").notNull().references(()=>posts.id,{onDelete:"cascade"}),status:subscriberDeliveryStatus("status").notNull().default("pending"),sentAt:timestamp("sent_at",{withTimezone:true}),attemptedAt:timestamp("attempted_at",{withTimezone:true}),
 },t=>[uniqueIndex("subscriber_deliveries_job_subscriber_uidx").on(t.notificationJobId,t.subscriberId),index("subscriber_deliveries_job_status_idx").on(t.notificationJobId,t.status)]);
+
+export const adminNotifications = pgTable("admin_notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: adminNotificationType("type").notNull(),
+  module: adminNotificationModule("module").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  targetType: text("target_type"),
+  targetId: uuid("target_id"),
+  targetUrl: text("target_url"),
+  severity: adminNotificationSeverity("severity").notNull().default("warning"),
+  status: adminNotificationStatus("status").notNull().default("unread"),
+  dedupeKey: text("dedupe_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+}, (table) => [
+  index("admin_notifications_status_created_idx").on(table.status, table.createdAt),
+  index("admin_notifications_module_status_idx").on(table.module, table.status),
+  index("admin_notifications_target_idx").on(table.targetType, table.targetId),
+  uniqueIndex("admin_notifications_unresolved_dedupe_uidx").on(table.dedupeKey).where(sql`${table.status} <> 'resolved'`),
+  check("admin_notifications_content_bounds_chk", sql`char_length(${table.title}) BETWEEN 1 AND 160 AND char_length(${table.message}) BETWEEN 1 AND 500 AND char_length(${table.dedupeKey}) BETWEEN 1 AND 240`),
+  check("admin_notifications_target_url_chk", sql`${table.targetUrl} IS NULL OR (${table.targetUrl} LIKE '/%' AND ${table.targetUrl} NOT LIKE '//%' AND char_length(${table.targetUrl}) <= 300)`),
+]);
 
 export const commentsSettings = pgTable("comments_settings", {
   id: text("id").primaryKey(),

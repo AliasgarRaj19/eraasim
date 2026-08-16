@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { publishDuePosts, SCHEDULED_PUBLISH_BATCH_SIZE, SCHEDULED_PUBLISH_MAX_BATCHES } from "../src/blog/scheduled-publishing";
+import { createOperationalNotificationSql } from "../src/notifications/service";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required");
@@ -21,6 +22,7 @@ async function main() {
     }
   }
   } catch (error) {
+    await createOperationalNotificationSql(pool, { type: "scheduled_publishing_failed", module: "system", title: "Scheduled publishing failed", message: "The scheduled publishing worker could not complete. Review worker health before retrying.", severity: "error", dedupeKey: "scheduled_publishing_failed:system" });
     console.error("Scheduled publishing failed.", error instanceof Error ? error.message : "Unknown error");
     process.exitCode = 1;
   } finally {

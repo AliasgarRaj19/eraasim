@@ -9,6 +9,8 @@ import type { AdminNavigationItem } from "@/src/navigation/admin-navigation";
 type AdminShellProps = {
   account: { name: string; email: string; isMasterAdmin: boolean };
   navigation: AdminNavigationItem[];
+  unreadOperationalCount: number;
+  showNotifications: boolean;
   children: React.ReactNode;
 };
 
@@ -18,7 +20,11 @@ function isActive(pathname: string, item: AdminNavigationItem) {
   return item.children?.some((child) => child.href === pathname) ?? false;
 }
 
-export function AdminShell({ account, navigation, children }: AdminShellProps) {
+function NavLabel({ item }: { item: AdminNavigationItem }) {
+  return <><span>{item.label}</span>{item.badge ? <span className="nav-badge" aria-label={`${item.badge} ${item.badgeLabel ?? "items"}`}>{item.badge}</span> : null}</>;
+}
+
+export function AdminShell({ account, navigation, unreadOperationalCount, showNotifications, children }: AdminShellProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -37,7 +43,7 @@ export function AdminShell({ account, navigation, children }: AdminShellProps) {
           <span aria-hidden="true">{menuOpen ? "Close" : "Menu"}</span>
         </button>
         <Link className="header-brand" href="/dashboard">Eraasim Admin</Link>
-        <span className="header-account">{account.name}</span>
+        <div className="header-actions">{showNotifications ? <Link className="notification-bell" href="/notifications/unread" aria-label={`${unreadOperationalCount} unread operational notifications`}><span aria-hidden="true">&#128276;</span>{unreadOperationalCount ? <span className="header-badge">{unreadOperationalCount}</span> : null}</Link> : null}<span className="header-account">{account.name}</span></div>
       </header>
 
       {menuOpen ? <button className="sidebar-scrim" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /> : null}
@@ -57,13 +63,13 @@ export function AdminShell({ account, navigation, children }: AdminShellProps) {
                   <li key={item.label}>
                     <details className="nav-group" open={active}>
                       <summary className={active ? "is-active" : undefined}>
-                        <span>{item.label}</span><span className="nav-chevron" aria-hidden="true">›</span>
+                        <NavLabel item={item}/><span className="nav-chevron" aria-hidden="true">›</span>
                       </summary>
                       <ul>
                         {item.children.map((child) => (
                           <li key={child.href}>
                             <Link href={child.href!} aria-current={pathname === child.href ? "page" : undefined} onClick={() => setMenuOpen(false)}>
-                              {child.label}
+                              <NavLabel item={child}/>
                             </Link>
                           </li>
                         ))}
@@ -75,7 +81,7 @@ export function AdminShell({ account, navigation, children }: AdminShellProps) {
 
               return (
                 <li key={item.href}>
-                  <Link href={item.href!} aria-current={pathname === item.href ? "page" : undefined} onClick={() => setMenuOpen(false)}>{item.label}</Link>
+                  <Link href={item.href!} aria-current={pathname === item.href ? "page" : undefined} onClick={() => setMenuOpen(false)}><NavLabel item={item}/></Link>
                 </li>
               );
             })}

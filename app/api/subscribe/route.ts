@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const enabled = await pool.query("SELECT 1 FROM subscriber_settings WHERE id='global' AND enabled=true");
     if (!enabled.rows[0]) return NextResponse.json({ ok: false, message: "Subscriptions are currently unavailable." }, { status: 403 });
     const identity = newSubscriberIdentity(), safeSource = source === "footer" ? "footer" : "popup";
-    await pool.query("INSERT INTO subscribers(id,email,normalized_email,status,source,unsubscribe_token_hash) VALUES($1,$2,$2,'active',$4,$3) ON CONFLICT(normalized_email) DO UPDATE SET email=EXCLUDED.email,status='active',unsubscribed_at=NULL,updated_at=CURRENT_TIMESTAMP", [identity.id, normalized, hashToken(identity.token), safeSource]);
+    await pool.query("INSERT INTO subscribers(id,email,normalized_email,status,source,unsubscribe_token_hash) VALUES($1,$2,$2,'active',$4,$3) ON CONFLICT(normalized_email) DO UPDATE SET email=EXCLUDED.email,status='active',unsubscribed_at=NULL,admin_seen_at=CASE WHEN subscribers.status='unsubscribed' THEN NULL ELSE subscribers.admin_seen_at END,updated_at=CURRENT_TIMESTAMP", [identity.id, normalized, hashToken(identity.token), safeSource]);
     return NextResponse.json({ ok: true, message: "Thank you for subscribing." });
   } catch (error) {
     if (["42P01", "42703"].includes((error as { code?: string }).code ?? "")) return NextResponse.json({ ok: false, message: "Subscriptions are currently unavailable." }, { status: 503 });
